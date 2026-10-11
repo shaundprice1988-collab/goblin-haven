@@ -4,10 +4,11 @@ An incremental (idle) phone game, built as an installable web app (PWA). Shaun's
 
 **Premise:** an MMO player gets corrupted into a starter-zone goblin. You defend your village (Mudhollow) from adventurers, grow a warband and a goblin town, evolve along a D&D-style monster tree (goblin → hobgoblin, bugbear, orc, ogre, troll and more), conquer regions, and eventually take the whole MMO. "Rollbacks" are the prestige loop. The game's UI talks like an MMO "System" window, and the humour is MMO satire.
 
-- Live: https://goblin-haven.vercel.app (Vercel project `goblin-haven`, id `prj_6LDrZ56kIFtJtarcweuh3JbzGFAM`)
-- Last deploy: wave 3 (service worker `goblinhaven-v6`), 11 Oct 2026, prod deployment `dpl_27R2DT6N7rwZjmj9BeFWBv1uUZMk`
+- Live: https://shaundprice1988-collab.github.io/goblin-haven/ (GitHub Pages, repo `shaundprice1988-collab/goblin-haven`, deploys on every push to `main`)
+- Also live: https://goblin-haven.vercel.app (Vercel project `goblin-haven`, id `prj_6LDrZ56kIFtJtarcweuh3JbzGFAM`). Saves are per site, so players move between the two with save export/import
+- Last Vercel deploy: wave 3 (service worker `goblinhaven-v6`), 11 Oct 2026, prod deployment `dpl_27R2DT6N7rwZjmj9BeFWBv1uUZMk`. GitHub Pages runs `goblinhaven-v7`
 - History: `docs/build-log.md`. Feature research that drove waves 1–3: `docs/feature-gaps-report.md` (all 16 items are built)
-- This folder was handed over from a Claude chat session that built waves 1–3. It is not a git repo yet: run `git init` and commit before making big changes.
+- This folder was handed over from a Claude chat session that built waves 1–3. Commits use the GitHub noreply email (set in this repo's git config).
 
 ## Run it locally
 
@@ -45,9 +46,13 @@ Event bus notes: `GH.emit(ev, a, b, c)` passes at most 3 args. `GH.ask(ev, …)`
 
 - The save lives in localStorage as `goblinhaven.save.v1`, with a rolling backup `goblinhaven.backup.v1`.
 - Any new state field must be filled in for old saves: `fixMeta` (meta.js), `fixTown` (town.js), or the load path in app.js. Never rename or repurpose an existing field.
-- Every deploy: bump `VERSION` in `sw.js` (next is `goblinhaven-v7`), and add any new file to **both** `FILES` in sw.js and the copy list in build.mjs. Otherwise installed players get stale or missing files.
+- Every deploy: bump `VERSION` in `sw.js` (next is `goblinhaven-v8`), and add any new file to **both** `FILES` in sw.js and the copy list in build.mjs. Otherwise installed players get stale or missing files.
 
 ## Deploy
+
+**GitHub Pages (main host):** push to `main`. `.github/workflows/pages.yml` runs `npm ci`, the build and both smoke tests, then publishes `dist/`. The site lives in a subfolder (`/goblin-haven/`), so keep every path relative: no leading `/` in `sw.js` FILES, the web manifest, or fetches.
+
+**Vercel (older host):**
 
 With the Vercel CLI from this folder:
 
