@@ -1,5 +1,5 @@
 // Assembles the game into dist/: copies the page files and fonts, and draws the app icons.
-import { mkdirSync, copyFileSync, writeFileSync, rmSync, existsSync } from 'node:fs';
+import { mkdirSync, copyFileSync, writeFileSync, rmSync, existsSync, cpSync } from 'node:fs';
 import { Resvg } from '@resvg/resvg-js';
 
 const OUT = 'dist';
@@ -7,6 +7,9 @@ rmSync(OUT, { recursive: true, force: true });
 mkdirSync(`${OUT}/fonts`, { recursive: true });
 mkdirSync(`${OUT}/icons`, { recursive: true });
 for (const f of ['index.html', 'style.css', 'more.css', 'core.js', 'town.js', 'meta.js', 'art.js', 'more.js', 'play.js', 'sound.js', 'world.js', 'app.js', 'sw.js', 'manifest.webmanifest']) if (existsSync(f)) copyFileSync(f, `${OUT}/${f}`);
+
+// PixelLab sprites (sprites/manifest.json lists what exists)
+if (existsSync('sprites')) cpSync('sprites', `${OUT}/sprites`, { recursive: true });
 
 const fs = 'node_modules/@fontsource';
 copyFileSync(`${fs}/pixelify-sans/files/pixelify-sans-latin-400-normal.woff2`, `${OUT}/fonts/pixelify-400.woff2`);

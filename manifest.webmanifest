@@ -1,10 +1,10 @@
 {
-  "id": "/",
+  "id": "./",
   "name": "Goblin Haven",
   "short_name": "Goblin Haven",
   "description": "Corrupted into a starter-zone goblin. Defend your village, build a goblin town, evolve, and take the whole MMO.",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#16130F",

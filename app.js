@@ -142,6 +142,7 @@
       region: Math.min(S.region, GH.FINAL_REGION),
       regionData: GH.region(S.region),
       heroLook: Art.formLook(FORM[S.form]),
+      heroForm: S.form,
       owned: S.owned,
       ranks: S.owned.map(GH.rankOf),
       goblins: GH.goblinCount(S),
@@ -1580,6 +1581,24 @@
     tap(now, false);
   });
   cv.addEventListener('contextmenu', (e) => e.preventDefault());
+
+  // desktop: keyboard play. Space or F attacks (held keys don't repeat), 1-5 switch tabs.
+  const TAB_KEYS = ['hero', 'village', 'town', 'ups', 'world'];
+  document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey || e.metaKey || e.altKey || document.querySelector('dialog[open]')) return;
+    const el = e.target;
+    if (el.closest && el.closest('input, textarea, select, [contenteditable="true"]')) return;
+    if (e.code === 'Space' || e.code === 'KeyF') {
+      if (e.code === 'Space' && el.closest && el.closest('button, a, [tabindex]')) return; // let Space press the focused button
+      e.preventDefault();
+      if (e.repeat) return;
+      const now = performance.now();
+      if (!GH.ask('sceneTap', null, now)) tap(now, false);
+    } else if (/^Digit[1-5]$/.test(e.code)) {
+      setTab(TAB_KEYS[Number(e.code[5]) - 1]);
+    }
+  });
+  if (matchMedia('(pointer: fine)').matches) $('#hint').innerHTML = 'Click or press <span class="kbd">Space</span> to fight';
 
   // ------------------------------------------------------------------ time
   let hiddenAt = 0;

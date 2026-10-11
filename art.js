@@ -573,6 +573,37 @@
 
   // ------------------------------------------------------------------ scene
   const ANIMATED_PROPS = new Set([2, 6, 9, 11]); // windmill, volcano, floating islands, the spire
+  // ------------------------------------------------------------------ PixelLab sprites
+  // sprites/manifest.json lists the PNGs that exist: { "goblin": { "east": "sprites/goblin/east.png" } }.
+  // Anything not listed (or not loaded yet) falls back to the procedural drawing.
+  const SPRITES = {};
+  function loadSprites() {
+    fetch('sprites/manifest.json').then((r) => (r.ok ? r.json() : {})).then((m) => {
+      for (const id in m) for (const dir in m[id]) {
+        const img = new Image();
+        img.onload = () => {
+          // crop to the opaque pixels so feet sit on the ground line
+          const c = document.createElement('canvas');
+          c.width = img.width; c.height = img.height;
+          const cg = c.getContext('2d');
+          cg.drawImage(img, 0, 0);
+          const d = cg.getImageData(0, 0, c.width, c.height).data;
+          let x0 = c.width, y0 = c.height, x1 = -1, y1 = -1;
+          for (let y = 0; y < c.height; y++) for (let x = 0; x < c.width; x++) {
+            if (d[(y * c.width + x) * 4 + 3] > 8) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+          }
+          if (x1 < 0) return;
+          (SPRITES[id] = SPRITES[id] || {})[dir] = { img, x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
+        };
+        img.src = m[id][dir];
+      }
+    }).catch(() => {});
+  }
+  if (typeof document !== 'undefined') loadSprites();
+  function sprite(id, dir) { return SPRITES[id] && SPRITES[id][dir]; }
+  // Scale test switch (temporary): ?spr=off | native | fit | hires
+  const SPR_MODE = (typeof location !== 'undefined' && new URLSearchParams(location.search).get('spr')) || 'hires';
+
   function createScene(canvas) {
     const ctx = canvas.getContext('2d');
     const low = document.createElement('canvas');
@@ -738,7 +769,21 @@
       heroLunge = Math.max(0, heroLunge - dt * 10);
       const heroX = Math.round(W * 0.57 + heroLunge * 3);
       const look = view.heroLook;
-      const heroTop = outlined((c) => humanoid(c, heroX, FY, look, { swing: heroSwing > 0 ? 1 - heroSwing : 0, bob: Math.sin(t * 2.4) > 0.5 ? 1 : 0, t }));
+      const heroBob = Math.sin(t * 2.4) > 0.5 ? 1 : 0;
+      const hs = SPR_MODE !== 'off' && sprite(view.heroForm, 'east');
+      let heroTop;
+      if (hs && SPR_MODE === 'native') { // 1 sprite pixel = 1 scene pixel
+        g.drawImage(hs.img, hs.x, hs.y, hs.w, hs.h, Math.round(heroX - hs.w / 2), FY - hs.h - heroBob, hs.w, hs.h);
+        heroTop = { top: FY - hs.h };
+      } else if (hs && SPR_MODE === 'fit') { // squashed down to the form's procedural height
+        const k = look.h / hs.h, w = Math.max(1, Math.round(hs.w * k));
+        g.drawImage(hs.img, hs.x, hs.y, hs.w, hs.h, Math.round(heroX - w / 2), FY - look.h - heroBob, w, look.h);
+        heroTop = { top: FY - look.h };
+      } else if (hs && SPR_MODE === 'hires') {
+        heroTop = { top: FY - look.h, hires: hs }; // drawn after the low-res compose, on the full-res canvas
+      } else {
+        heroTop = outlined((c) => humanoid(c, heroX, FY, look, { swing: heroSwing > 0 ? 1 - heroSwing : 0, bob: heroBob, t }));
+      }
       // corruption flicker on the hero
       if (!reduce && Math.sin(t * 1.3) > 0.97) px(g, heroX - 3 + Math.floor(Math.random() * 6), heroTop.top + Math.floor(Math.random() * look.h), 2, 1, '#FF4F8B');
 
@@ -802,6 +847,13 @@
       const sx2 = shake ? (Math.random() - 0.5) * shake : 0, sy2 = shake ? (Math.random() - 0.5) * shake : 0;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(low, 0, 0, W, H, Math.round(sx2 * DPR), Math.round(sy2 * DPR), W * SCALE * DPR, H * SCALE * DPR);
+      if (heroTop.hires) {
+        // whole-number scale that lands closest to the form's procedural height
+        const hs2 = heroTop.hires, k = Math.max(1, Math.round(SCALE * look.h / hs2.h)) * DPR;
+        const dw = Math.round(hs2.w * k), dh = Math.round(hs2.h * k);
+        const dx = Math.round((heroX * SCALE + sx2) * DPR - dw / 2), dy = Math.round(((FY - heroBob) * SCALE + sy2) * DPR - dh);
+        ctx.drawImage(hs2.img, hs2.x, hs2.y, hs2.w, hs2.h, dx, dy, dw, dh);
+      }
       if (flashT > 0) { ctx.fillStyle = `rgba(255,79,139,${flashT * 0.5})`; ctx.fillRect(0, 0, canvas.width, canvas.height); flashT = Math.max(0, flashT - dt * 1.5); }
 
       // ---- crisp text layer

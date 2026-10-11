@@ -484,3 +484,23 @@ button.unit-icon { cursor: pointer; }
   .hint, .sysmsg, .chat div, .row.ranked { animation: none; }
   .xpfill, .buy .fill, .intro .bar span { transition: none; }
 }
+
+/* ------------------------------------------------------------ desktop: battle on the left, panels on the right */
+@media (min-width: 960px) and (min-height: 560px) {
+  #app {
+    max-width: 1480px;
+    grid-template-columns: minmax(0, 1.55fr) minmax(400px, 1fr);
+    grid-template-rows: auto 1fr auto;
+    grid-template-areas: "scene tabs" "scene panel" "region panel";
+    border-left: 1px solid var(--line); border-right: 1px solid var(--line);
+  }
+  .scene { grid-area: scene; }
+  .regionbar { grid-area: region; border-bottom: 0; }
+  .tabs { grid-area: tabs; border-left: 1px solid var(--line); padding: 0 8px 0 12px; }
+  .panel { grid-area: panel; border-left: 1px solid var(--line); }
+  .tabs [role="tab"] { padding: 14px 10px 12px; }
+  .row { padding-top: 12px; padding-bottom: 12px; }
+  .buy:hover:not(:disabled), .rb-btn:hover, .secondary:hover { filter: brightness(1.12); }
+  .row:hover { background: rgba(239, 230, 210, 0.03); }
+}
+.kbd { display: inline-block; padding: 0 5px; border: 1px solid var(--parch-3); border-radius: 3px; font-size: 0.85em; line-height: 1.3; }
