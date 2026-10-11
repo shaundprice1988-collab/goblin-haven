@@ -1,0 +1,19 @@
+{
+  "id": "/",
+  "name": "Goblin Haven",
+  "short_name": "Goblin Haven",
+  "description": "Corrupted into a starter-zone goblin. Defend your village, build a goblin town, evolve, and take the whole MMO.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#16130F",
+  "theme_color": "#16130F",
+  "categories": ["games"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

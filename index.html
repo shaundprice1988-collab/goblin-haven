@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Goblin Haven</title>
+<meta name="description" content="Corrupted into a starter-zone goblin. Defend your village, build a goblin town, evolve, and take the whole MMO.">
+<meta name="theme-color" content="#16130F">
+<meta name="color-scheme" content="dark">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preload" href="fonts/pixelify-600.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/barlow-500.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="more.css">
+</head>
+<body>
+<div id="app">
+  <div class="scene" id="scene">
+    <canvas id="cv" aria-label="The battle at your village. Tap anywhere here to attack the adventurer."></canvas>
+
+    <button class="unitframe" id="unitframe" type="button" aria-label="Open your status">
+      <img class="portrait" id="portrait" alt="" width="44" height="44">
+      <span class="uf-text">
+        <span class="uf-name" id="ufName">Goblin</span>
+        <span class="uf-form"><span id="ufForm">Goblin</span> <span class="uf-lv" id="ufLv">Lv 1</span></span>
+        <span class="xpbar"><span class="xpfill" id="xpFill"></span></span>
+      </span>
+    </button>
+
+    <div class="purse">
+      <div class="shinies"><span class="coin" aria-hidden="true"></span><span id="gold">0</span></div>
+      <div class="dps"><span id="dps">0</span> damage per second</div>
+    </div>
+
+    <div class="buff" id="buff" hidden></div>
+    <div class="chat" id="chat" aria-live="off"></div>
+    <div class="hint" id="hint">Tap to fight</div>
+    <div class="leeches" id="leeches" aria-label="Data leeches"></div>
+    <div class="trickbar" id="trickBar" role="group" aria-label="Dirty Tricks" hidden></div>
+    <div class="systack" id="systack" role="status" aria-live="polite"></div>
+  </div>
+
+  <div class="regionbar" id="regionbar">
+    <div class="rb-info">
+      <div class="rb-name" id="rbName">Mudhollow</div>
+      <div class="rb-sub"><button type="button" class="chbadge" id="chBadge" hidden></button><span id="rbSub">Adventurers Lv 1–10</span></div>
+    </div>
+    <div class="rb-progress" id="rbProgress" aria-hidden="true"></div>
+    <button type="button" class="rb-btn" id="rbBtn" hidden>Fight leader</button>
+    <div class="rb-timer" id="rbTimer" hidden><span id="rbTimerFill"></span><b id="rbTimerText">30s</b></div>
+  </div>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" type="button" data-tab="hero" aria-selected="true">Hero<span class="dot" id="dotHero" hidden></span></button>
+    <button role="tab" type="button" data-tab="village" aria-selected="false">Warband<span class="dot" id="dotVillage" hidden></span></button>
+    <button role="tab" type="button" data-tab="town" aria-selected="false">Town<span class="dot" id="dotTown" hidden></span></button>
+    <button role="tab" type="button" data-tab="ups" aria-selected="false">Upgrades<span class="dot" id="dotUps" hidden></span></button>
+    <button role="tab" type="button" data-tab="world" aria-selected="false">World<span class="dot" id="dotWorld" hidden></span></button>
+    <button type="button" class="icon-btn" id="menuBtn" aria-label="Settings and stats"><span class="dot" id="dotMenu" hidden></span>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg>
+    </button>
+  </nav>
+
+  <main class="panel" id="panel">
+    <section id="tab-hero" role="tabpanel">
+      <div id="evoBox"></div>
+      <div class="sysw status" id="statusWin"></div>
+      <div class="row-actions">
+        <button type="button" class="secondary" id="treeBtn">Evolution tree</button>
+        <button type="button" class="secondary" id="featBtn">Feats<span class="dot" id="dotFeats" hidden></span></button>
+      </div>
+      <div class="sysw tricks" id="trickBox" hidden></div>
+    </section>
+
+    <section id="tab-village" role="tabpanel" hidden>
+      <div class="listhead">
+        <div class="lh-text" id="villageHead">Mudhollow</div>
+        <div class="buymode" id="buymode" role="group" aria-label="How many to recruit">
+          <button type="button" data-mode="1" aria-pressed="true">×1</button>
+          <button type="button" data-mode="10" aria-pressed="false">×10</button>
+          <button type="button" data-mode="next" aria-pressed="false">Next</button>
+          <button type="button" data-mode="max" aria-pressed="false">Max</button>
+        </div>
+      </div>
+      <p class="hcnote" id="hcNoteVillage" hidden></p>
+      <div id="recruitTools"></div>
+      <ul class="list" id="unitList"></ul>
+    </section>
+
+    <section id="tab-town" role="tabpanel" hidden>
+      <div class="sysw town-locked" id="townLocked" hidden></div>
+      <div id="townMain" hidden>
+        <div class="townview"><canvas id="townCv" aria-label="Your town. Tap a goblin to hear what they think."></canvas><button type="button" class="seasonchip" id="seasonChip"></button></div>
+        <div class="town-head">
+          <div class="resbar" id="resBar"></div>
+          <div class="subtabs" role="tablist" aria-label="Town">
+            <button type="button" role="tab" data-sub="jobs" aria-selected="true">Goblins<span class="dot" id="dotJobs" hidden></span></button>
+            <button type="button" role="tab" data-sub="build" aria-selected="false">Build<span class="dot" id="dotBuild" hidden></span></button>
+            <button type="button" role="tab" data-sub="tech" aria-selected="false">Research<span class="dot" id="dotTech" hidden></span></button>
+            <button type="button" role="tab" data-sub="hall" aria-selected="false" id="subHall" hidden>Hall<span class="dot" id="dotHall" hidden></span></button>
+          </div>
+        </div>
+        <div id="sub-jobs">
+          <div class="popcard" id="popCard"></div>
+          <div class="listhead">
+            <div class="lh-text" id="jobsHead"></div>
+            <div class="buymode" id="stepmode" role="group" aria-label="How many goblins to move">
+              <button type="button" data-step="1" aria-pressed="true">1</button>
+              <button type="button" data-step="5" aria-pressed="false">5</button>
+              <button type="button" data-step="all" aria-pressed="false">All</button>
+            </div>
+          </div>
+          <ul class="list" id="jobList"></ul>
+          <label class="setting inset">
+            <span>New goblins follow your job split<span class="muted small block">Turn off to keep them idle until you choose.</span></span>
+            <input type="checkbox" id="autoJobs" class="switch">
+          </label>
+        </div>
+        <div id="sub-build" hidden>
+          <div class="sysw townfx" id="townFx"></div>
+          <ul class="list" id="bldList"></ul>
+          <p class="empty" id="bldNext" hidden></p>
+        </div>
+        <div id="sub-hall" hidden></div>
+        <div id="sub-tech" hidden>
+          <div id="techList"></div>
+          <details class="bought" id="techDoneWrap" hidden>
+            <summary id="techDoneSummary">Researched</summary>
+            <ul id="techDoneList"></ul>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-ups" role="tabpanel" hidden>
+      <p class="hcnote" id="hcNoteUps" hidden></p>
+      <div id="upTools"></div>
+      <ul class="list" id="upList"></ul>
+      <p class="empty" id="upEmpty" hidden></p>
+      <details class="bought" id="boughtWrap" hidden>
+        <summary id="boughtSummary">Bought</summary>
+        <ul id="boughtList"></ul>
+      </details>
+    </section>
+
+    <section id="tab-world" role="tabpanel" hidden>
+      <div class="sysw rollback" id="rollbackWin"></div>
+      <div id="metaBar"></div>
+      <div id="worldExtra"></div>
+      <ol class="regions" id="regionList"></ol>
+    </section>
+  </main>
+</div>
+
+<!-- first launch -->
+<div class="intro" id="intro" hidden>
+  <button type="button" class="skip" id="introSkip">Skip</button>
+  <div class="intro-body" id="introBody"></div>
+</div>
+
+<dialog id="formDlg" class="sheet"></dialog>
+
+<dialog id="rankDlg" class="sheet"></dialog>
+<dialog id="featDlg" class="sheet"></dialog>
+<dialog id="exDlg" class="sheet"></dialog>
+<dialog id="logDlg" class="sheet"></dialog>
+<dialog id="xferDlg" class="sheet"></dialog>
+<dialog id="pickDlg" class="sheet"></dialog>
+<dialog id="chDlg" class="sheet"></dialog>
+<dialog id="dataDlg" class="sheet"></dialog>
+<dialog id="storyDlg" class="sheet story"></dialog>
+<dialog id="relicDlg" class="sheet"></dialog>
+
+<dialog id="treeDlg" class="sheet tree-sheet">
+  <div class="tree-head">
+    <h2>Evolution tree</h2>
+    <button type="button" class="secondary small-btn" id="treeClose">Close</button>
+  </div>
+  <p class="muted small tree-legend">Tap any form for details. Gold outline: your current form. Undiscovered forms show as ???.</p>
+  <div class="tree-scroll" id="treeScroll"></div>
+</dialog>
+
+<dialog id="awayDlg" class="sheet">
+  <div class="sys-title">System</div>
+  <h2>While you were logged out</h2>
+  <p>Your goblins held Mudhollow for <strong id="awayTime">0m</strong>.</p>
+  <dl class="stats" id="awayStats"></dl>
+  <button type="button" class="primary wide" id="awayOk">Collect</button>
+</dialog>
+
+<dialog id="menuDlg" class="sheet">
+  <h2>Settings</h2>
+  <div class="setting" id="installRow">
+    <div>
+      <div>Install as an app</div>
+      <div class="muted small" id="installNote">Adds Goblin Haven to your home screen and app drawer.</div>
+    </div>
+    <button type="button" class="secondary" id="installBtn">Install</button>
+  </div>
+  <label class="setting">
+    <span>Vibrate on tap</span>
+    <input type="checkbox" id="vibrateToggle" class="switch">
+  </label>
+  <label class="setting">
+    <span>Fight raid leaders automatically</span>
+    <input type="checkbox" id="autoToggle" class="switch">
+  </label>
+  <div id="menuExtra"></div>
+  <h3>Stats</h3>
+  <dl class="stats" id="stats"></dl>
+  <div class="dlg-actions">
+    <button type="button" class="danger" id="resetBtn">Delete save</button>
+    <button type="button" class="primary" id="menuClose">Done</button>
+  </div>
+</dialog>
+
+<dialog id="confirmDlg" class="sheet">
+  <h2 id="confirmTitle">Are you sure?</h2>
+  <p id="confirmBody"></p>
+  <div class="dlg-actions">
+    <button type="button" class="secondary" id="confirmNo">Cancel</button>
+    <button type="button" class="primary" id="confirmYes">Confirm</button>
+  </div>
+</dialog>
+
+<dialog id="victoryDlg" class="sheet victory">
+  <div class="victory-body" id="victoryBody"></div>
+  <button type="button" class="primary wide" id="victoryOk">Keep playing</button>
+</dialog>
+
+<script src="core.js"></script>
+<script src="town.js"></script>
+<script src="meta.js"></script>
+<script src="art.js"></script>
+<script src="more.js"></script>
+<script src="play.js"></script>
+<script src="sound.js"></script>
+<script src="world.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
