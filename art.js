@@ -619,21 +619,53 @@
       }
     }).catch(() => {});
   }
+  // ---- loading. The manifest is read at startup, but an entry's images are only requested the first time something
+  // asks for it (ensure), so whatever is on screen jumps the queue. Once the battle scene has everything it needs, the
+  // rest is prefetched a few entries at a time so later evolutions and regions don't wait (prefetchAll).
+  let MANIFEST = null, manifestFailed = false, prefetching = false;
+  const STATE = {}, LOADS = {}; // id -> 'loading' | 'ready'; id -> its loading promise
+  let wanted = 0;               // listed-but-still-loading entries asked for; the scene counts these per frame
+  const loadImage = (url) => new Promise((res) => { const img = new Image(); img.onload = () => res(img); img.onerror = () => res(null); img.src = url; });
   // Animation frames share one crop (the union of every frame's opaque pixels) so the figure doesn't jitter.
   function loadFrames(entry, key, urls) {
-    const imgs = urls.map((u) => { const img = new Image(); img.src = u; return img; });
-    let left = imgs.length;
-    imgs.forEach((img) => { img.onload = img.onerror = () => { if (--left) return;
-      const boxes = imgs.map((im) => (im.naturalWidth ? cropInfo(im) : null));
-      if (boxes.some((b) => !b)) return;
-      const x0 = Math.min(...boxes.map((b) => b.x)), y0 = Math.min(...boxes.map((b) => b.y));
-      const x1 = Math.max(...boxes.map((b) => b.x + b.w)), y1 = Math.max(...boxes.map((b) => b.y + b.h));
+    return Promise.all(urls.map(loadImage)).then((imgs) => {
+      if (imgs.some((im) => !im)) return;
+      const boxes = imgs.map((im) => cropInfo(im));
+      if (boxes.some((bx) => !bx)) return;
+      const x0 = Math.min(...boxes.map((bx) => bx.x)), y0 = Math.min(...boxes.map((bx) => bx.y));
+      const x1 = Math.max(...boxes.map((bx) => bx.x + bx.w)), y1 = Math.max(...boxes.map((bx) => bx.y + bx.h));
       // anchor every frame on frame 0's body (the rest pose): its centre and its feet, so a weapon swinging out
       // past the body doesn't shift the figure
       const f0 = boxes[0], ax = f0.x + f0.w / 2 - x0, ay = f0.y + f0.h - y0;
-      entry[key] = boxes.map((b) => ({ img: b.img, x: x0, y: y0, w: x1 - x0, h: y1 - y0, hx: b.hx + b.x - x0, ty: b.y - y0, ax, ay, bodyH: f0.h }));
-      artChanged();
-    }; });
+      entry[key] = boxes.map((bx) => ({ img: bx.img, x: x0, y: y0, w: x1 - x0, h: y1 - y0, hx: bx.hx + bx.x - x0, ty: bx.y - y0, ax, ay, bodyH: f0.h }));
+    });
+  }
+  function ensure(id) {
+    if (LOADS[id]) return LOADS[id];
+    if (!MANIFEST || !MANIFEST[id]) return Promise.resolve();
+    STATE[id] = 'loading';
+    const m = MANIFEST[id], entry = SPRITES[id], jobs = [];
+    for (const key in m) {
+      const val = m[key];
+      if (Array.isArray(val)) jobs.push(loadFrames(entry, key, val)); // animation frames, e.g. "attack"
+      else if (typeof val === 'string') jobs.push(loadImage(val).then((img) => {
+        if (!img) return;
+        if (key === 'bg') entry.bg = { img, x: 0, y: 0, w: img.width, h: img.height };
+        else { const sp = cropInfo(img); if (sp) entry[key] = sp; }
+      }));
+    }
+    return (LOADS[id] = Promise.all(jobs).then(() => { STATE[id] = 'ready'; artChanged(); }));
+  }
+  // Still waiting on this entry's art? (Before the manifest arrives, everything counts as waiting.)
+  const artPending = (id) => (!MANIFEST ? !manifestFailed : STATE[id] === 'loading');
+  // Prefetch everything not loaded yet, four entries at a time, once the first scene is complete.
+  function prefetchAll() {
+    if (prefetching || !MANIFEST) return;
+    prefetching = true;
+    const ids = Object.keys(SPRITES).filter((id) => !LOADS[id]);
+    let i = 0;
+    const next = () => { if (i < ids.length) ensure(ids[i++]).then(next); };
+    for (let k = 0; k < 4; k++) next();
   }
   // Callbacks for when sprite images arrive, so cached UI images (portraits, unit icons) can be redrawn.
   const artListeners = [];
@@ -642,27 +674,35 @@
   function loadSprites() {
     fetch('sprites/manifest.json').then((r) => (r.ok ? r.json() : {})).then((m) => {
       for (const id in m) {
-        if (m[id].pack) { loadFx(id.replace(/^fx-/, ''), m[id].pack); continue; }
+        if (m[id].pack) { loadFx(id.replace(/^fx-/, ''), m[id].pack); continue; } // VFX are small: load them all now
         const entry = SPRITES[id] = {};
-        const v = /^adv-([a-z]+)-\d+$/.exec(id);
+        for (const key in m[id]) if (typeof m[id][key] !== 'string' && !Array.isArray(m[id][key])) entry[key] = m[id][key]; // horizon, village
+        const v = /^adv-([a-z]+)-d+$/.exec(id);
         if (v) (VARIANTS[v[1]] = VARIANTS[v[1]] || []).push(id);
-        for (const key in m[id]) {
-          const val = m[id][key];
-          if (Array.isArray(val)) { loadFrames(entry, key, val); continue; } // animation frames, e.g. "attack"
-          if (typeof val !== 'string') { entry[key] = val; continue; } // numbers such as "horizon"
-          const img = new Image();
-          img.onload = () => {
-            if (key === 'bg') entry.bg = { img, x: 0, y: 0, w: img.width, h: img.height };
-            else { const s = cropInfo(img); if (s) entry[key] = s; }
-            artChanged();
-          };
-          img.src = val;
-        }
       }
-    }).catch(() => {});
+      MANIFEST = m;
+      artChanged();
+    }).catch(() => { manifestFailed = true; artChanged(); });
   }
   if (typeof document !== 'undefined') loadSprites();
-  function sprite(id, dir) { return SPRITES[id] && SPRITES[id][dir]; }
+  // A loaded sprite, or null. Asking starts its download; a listed sprite that is still loading counts as wanted.
+  function sprite(id, dir) {
+    const e = SPRITES[id];
+    if (!e) { if (!MANIFEST && !manifestFailed) wanted++; return null; }
+    ensure(id);
+    if (e[dir]) return e[dir];
+    if (STATE[id] === 'loading') wanted++;
+    return null;
+  }
+  // The whole entry (facings, frames, numbers) for direct use, with the same loading rules.
+  function entryOf(id) {
+    const e = SPRITES[id];
+    if (!e) { if (!MANIFEST && !manifestFailed) wanted++; return null; }
+    ensure(id);
+    if (STATE[id] === 'loading') wanted++;
+    return e;
+  }
+  const BLANK = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'; // UI images while their art loads
   // A one-colour silhouette of a sprite: white for the hit flash, gold for a boss's glow. Cached per colour.
   function tintOf(s, color) {
     s.tints = s.tints || {};
@@ -912,9 +952,9 @@
     // The PixelLab backdrop for a region, if there is one. Uncharted shards share one.
     // A landscape band uses the region's 512-wide panorama (bg-<r>-wide) when there is one.
     const bgSprite = (r) => {
-      const id = r <= 11 ? 'bg-' + r : 'bg-shard', wideE = WIDE && SPRITES[id + '-wide'];
-      if (wideE && wideE.bg) return wideE;
-      const e = SPRITES[id];
+      const id = r <= 11 ? 'bg-' + r : 'bg-shard';
+      if (WIDE && SPRITES[id + '-wide']) { const we = entryOf(id + '-wide'); if (we.bg) return we; if (artPending(id + '-wide')) return null; }
+      const e = entryOf(id);
       return e && e.bg ? e : null;
     };
     function paintBackground(R, r) {
@@ -1010,10 +1050,16 @@
       return { x: Math.round(SX + (1 - p) * ENTER), walking: p < 1, p };
     }
 
+    // Until the first frame whose sprites have all arrived (or LOAD_WAIT ms), the scene shows a loading screen rather
+    // than flashing the old procedural art; then the rest of the art is prefetched in the background.
+    let gateOpen = false, gateT0 = 0;
+    const LOAD_WAIT = 3000;
     function frame(dt, now, view) {
       if (!W) return;
       const t = now / 1000;
       const R = view.regionData;
+      wanted = 0;
+      if (!gateT0) gateT0 = performance.now();
       paintBackground(R, view.region);
       g.clearRect(0, 0, W, H);
       fine(g, () => g.drawImage(bgC, 0, 0));
@@ -1101,7 +1147,7 @@
       heroXNow = HX;
       const look = view.heroLook;
       // sprite frames: an attack animation after each swing, else an idle loop, else the still sprite with a bob
-      const hset = SPRITES[view.heroForm] || {};
+      const hset = entryOf(view.heroForm) || {};
       heroAnim = Math.min(1, heroAnim + dt / 0.32);
       if (heroPending) {
         const fr = hset.attack, sf = STRIKE_FRAME[view.heroForm];
@@ -1151,7 +1197,7 @@
           const style = combatOf(eid, e.look.cls);
           let lunge = 0;
           if (e.atk != null) {
-            const frames = eid && SPRITES[eid].attack;
+            const frames = eid && entryOf(eid).attack;
             if (frames && es) es = frames[Math.min(frames.length - 1, Math.floor(e.atk * frames.length))];
             if (style.kind === 'melee') lunge = Math.round(Math.sin(Math.min(1, e.atk) * Math.PI) * 8);
             else if (!frames) lunge = e.atk < 0.6 ? 1 : 0;
@@ -1171,7 +1217,7 @@
         // adventurers attack the hero every couple of seconds (bosses more often); raids just posture
         if (e.atk != null) {
           const eid = !e.raid && lookSpriteId(e.look, [e.look.sprite, e.boss ? 'boss-' + slug(e.name) : null, e.whale ? 'whale' : null]);
-          const frames = eid && SPRITES[eid].attack;
+          const frames = eid && entryOf(eid).attack;
           e.atk += dt / (frames ? Math.max(0.45, frames.length / 12) : 0.45);
           const release = frames && STRIKE_FRAME[eid] != null ? (STRIKE_FRAME[eid] + 0.3) / frames.length : RELEASE;
           if (!e.fired && e.atk >= release) { e.fired = true; if (!e.dead) enemyStrike(e, ePos, combatOf(eid, e.look.cls)); }
@@ -1222,6 +1268,8 @@
       shake = Math.max(0, shake - dt * 30);
       const sx2 = shake ? (Math.random() - 0.5) * shake : 0, sy2 = shake ? (Math.random() - 0.5) * shake : 0;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (!gateOpen && (wanted === 0 || performance.now() - gateT0 > LOAD_WAIT)) { gateOpen = true; prefetchAll(); }
+      if (!gateOpen) { drawLoading(now); return; }
       ctx.drawImage(low, 0, 0, W * FX, H * FX, Math.round(sx2 * DPR), Math.round(sy2 * DPR), W * SCALE * DPR, H * SCALE * DPR);
       if (flashT > 0) { ctx.fillStyle = `rgba(255,79,139,${flashT * 0.5})`; ctx.fillRect(0, 0, canvas.width, canvas.height); flashT = Math.max(0, flashT - dt * 1.5); }
 
@@ -1279,6 +1327,17 @@
         ctx.fillStyle = '#FFE9A8';
         ctx.fillRect(Math.round(x) - 2, Math.round(y) - 2, 2, 2);
       }
+    }
+
+    // The loading screen: the night colour and a quiet System line, while the first scene's art downloads.
+    function drawLoading(now) {
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.fillStyle = '#16130F'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      ctx.textAlign = 'center';
+      ctx.font = '600 14px "Pixelify Sans", monospace';
+      ctx.fillStyle = `rgba(127,224,245,${0.45 + 0.35 * Math.sin(now / 300)})`;
+      ctx.fillText('Loading world data' + '...'.slice(0, 1 + Math.floor(now / 400) % 3), CW / 2, CH * 0.55);
     }
 
     // a column of light and sparks over a force that just ranked up
@@ -1816,6 +1875,7 @@
   function portrait(form, size, unknown) {
     // a PixelLab form gets a head-and-shoulders crop of its front-facing (south) sprite
     const ps = sprite(form.id, 'south');
+    if (!ps && artPending(form.id)) return BLANK; // its art is on the way: show nothing rather than the old drawing
     const key = form.id + size + (unknown ? 'u' : '') + (ps ? 's' : '');
     if (portraitCache[key]) return portraitCache[key];
     if (ps) {
@@ -1874,6 +1934,7 @@
     r = r || 0;
     // a PixelLab unit fills a square frame, feet near the bottom
     const us = unitSprite(i, r);
+    if (!us && (artPending(`unit-${i}-0`) || artPending(`unit-${i}-${r >= 4 ? 2 : r >= 2 ? 1 : 0}`))) return BLANK;
     const key = i + ':' + size + ':' + r + (us ? ':s' + us.w + 'x' + us.h : '');
     if (unitCache[key]) return unitCache[key];
     if (us) {

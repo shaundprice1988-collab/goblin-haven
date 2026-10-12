@@ -6,7 +6,7 @@ An incremental (idle) phone game, built as an installable web app (PWA). Shaun's
 
 - Live: https://shaundprice1988-collab.github.io/goblin-haven/ (GitHub Pages, repo `shaundprice1988-collab/goblin-haven`, deploys on every push to `main`)
 - Also live: https://goblin-haven.vercel.app (Vercel project `goblin-haven`, id `prj_6LDrZ56kIFtJtarcweuh3JbzGFAM`). Saves are per site, so players move between the two with save export/import
-- Last Vercel deploy: wave 3 (service worker `goblinhaven-v6`), 11 Oct 2026, prod deployment `dpl_27R2DT6N7rwZjmj9BeFWBv1uUZMk`. GitHub Pages runs `goblinhaven-v9`
+- Last Vercel deploy: wave 3 (service worker `goblinhaven-v6`), 11 Oct 2026, prod deployment `dpl_27R2DT6N7rwZjmj9BeFWBv1uUZMk`. GitHub Pages runs `goblinhaven-v10`
 - History: `docs/build-log.md`. Feature research that drove waves 1–3: `docs/feature-gaps-report.md` (all 16 items are built)
 - This folder was handed over from a Claude chat session that built waves 1–3. Commits use the GitHub noreply email (set in this repo's git config).
 
@@ -63,7 +63,7 @@ There are three layouts, all in `style.css`. The battle scene adapts to whicheve
 
 - The save lives in localStorage as `goblinhaven.save.v1`, with a rolling backup `goblinhaven.backup.v1`.
 - Any new state field must be filled in for old saves: `fixMeta` (meta.js), `fixTown` (town.js), or the load path in app.js. Never rename or repurpose an existing field.
-- Every deploy: bump `VERSION` in `sw.js` (next is `goblinhaven-v10`), and add any new file to **both** `FILES` in sw.js and the copy list in build.mjs. Otherwise installed players get stale or missing files. The `sprites/` folder is the exception: build.mjs copies it whole, and sw.js caches sprite files at runtime instead of pre-caching them, so the VERSION bump is what refreshes them.
+- Every deploy: bump `VERSION` in `sw.js` (next is `goblinhaven-v11`), and add any new file to **both** `FILES` in sw.js and the copy list in build.mjs. Otherwise installed players get stale or missing files. The `sprites/` folder is the exception: build.mjs copies it whole, and sw.js caches sprite files at runtime instead of pre-caching them, so the VERSION bump is what refreshes them.
 
 ## Deploy
 
@@ -114,6 +114,10 @@ The art is a mix: PixelLab sprites and backgrounds (PNG files in `sprites/`) whe
     - Named sprites win: `boss-<slug of the boss name>` (e.g. `boss-gmaldric`) and `whale`.
     - Warband units are `unit-<index>-<tier>`, with tier 0 for ranks 0–1, tier 1 for ranks 2–3 and tier 2 for ranks 4–5; rank 5 adds a cyan glow.
     - The village uses `hut`, `hut-banner` (one per conquered region), `palisade`, `tower`, and `crowd-0`/`crowd-1` for villagers. Evolution forms use their `FORM` id.
+  - **Loading:** `loadSprites` reads the manifest at startup but downloads an entry only when something first asks for it (`sprite()` / `entryOf()` → `ensure`), so the art on screen loads first.
+    - Until the battle scene draws one frame with all its sprites present (or 3 s pass), it shows a "Loading world data" screen instead of the procedural fallbacks.
+    - After that, `prefetchAll` downloads everything else, four entries at a time.
+    - The portrait and unit icons return a blank image while their art is loading. VFX packs are small and load eagerly.
   - `GHArt.onArt(fn)` fires when sprite images finish loading; app.js uses it to redraw the cached portrait and unit icons.
 - **VFX** (PixelLab VFX Creator, the `vfx_workbench` MCP tool; renders are free):
   - Export each effect with `--game-pack` and keep only its `manifest.json` and `whole.png` in `sprites/fx/<name>/`. The "whole" clip is drawn at an anchor (a character's feet) plus the pack's offset, 1:1 on the fine grid.
