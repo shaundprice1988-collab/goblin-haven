@@ -1,0 +1,144 @@
+{
+ "app": "PixelLab VFX Creator",
+ "name": "Goblin Haven - hex",
+ "fps": 12,
+ "frame_ms": 83,
+ "frames": 10,
+ "loop": false,
+ "canvas": {
+  "w": 45,
+  "h": 83
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 18,
+  "y": 73
+ },
+ "clips": [
+  {
+   "name": "whole",
+   "title": "the whole effect, no sprite",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 9,
+   "frame": {
+    "w": 37,
+    "h": 72
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 9,
+     "columns": 3,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -17,
+    "y": -65
+   }
+  },
+  {
+   "name": "whole-with-sprite",
+   "title": "the whole effect with the sprite in it",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 10,
+   "frame": {
+    "w": 37,
+    "h": 72
+   },
+   "sheets": [
+    {
+     "file": "whole-with-sprite.png",
+     "first_frame": 0,
+     "frames": 10,
+     "columns": 4,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -17,
+    "y": -65
+   }
+  },
+  {
+   "name": "front",
+   "title": "everything in front of the sprite",
+   "depth": "front",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 9,
+   "frame": {
+    "w": 37,
+    "h": 72
+   },
+   "sheets": [
+    {
+     "file": "front.png",
+     "first_frame": 0,
+     "frames": 9,
+     "columns": 3,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -17,
+    "y": -65
+   }
+  },
+  {
+   "name": "part-rest",
+   "title": "the layers in no part",
+   "depth": "front",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 9,
+   "frame": {
+    "w": 30,
+    "h": 72
+   },
+   "sheets": [
+    {
+     "file": "part-rest.png",
+     "first_frame": 0,
+     "frames": 9,
+     "columns": 3,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -13,
+    "y": -65
+   }
+  },
+  {
+   "name": "part-skulls",
+   "title": "the skulls part",
+   "depth": "front",
+   "loop": false,
+   "start_frame": 1,
+   "frames": 7,
+   "frame": {
+    "w": 37,
+    "h": 37
+   },
+   "sheets": [
+    {
+     "file": "part-skulls.png",
+     "first_frame": 0,
+     "frames": 7,
+     "columns": 3,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -17,
+    "y": -52
+   }
+  }
+ ]
+}

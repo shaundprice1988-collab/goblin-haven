@@ -1,0 +1,44 @@
+{
+ "app": "PixelLab VFX Creator",
+ "name": "Goblin Haven - cast-fire",
+ "fps": 16,
+ "frame_ms": 63,
+ "frames": 6,
+ "loop": false,
+ "canvas": {
+  "w": 27,
+  "h": 27
+ },
+ "anchor": {
+  "kind": "origin",
+  "x": 13,
+  "y": 13
+ },
+ "clips": [
+  {
+   "name": "whole",
+   "title": "the whole effect, no sprite",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 5,
+   "frame": {
+    "w": 15,
+    "h": 14
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 5,
+     "columns": 3,
+     "rows": 2
+    }
+   ],
+   "offset": {
+    "x": -6,
+    "y": -6
+   }
+  }
+ ]
+}

@@ -1,0 +1,194 @@
+{
+ "app": "PixelLab VFX Creator",
+ "name": "Goblin Haven - conquer",
+ "fps": 12,
+ "frame_ms": 83,
+ "frames": 15,
+ "loop": false,
+ "canvas": {
+  "w": 112,
+  "h": 122
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 56,
+  "y": 118
+ },
+ "clips": [
+  {
+   "name": "whole",
+   "title": "the whole effect, no sprite",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 14,
+   "frame": {
+    "w": 106,
+    "h": 96
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 14,
+     "columns": 4,
+     "rows": 4
+    }
+   ],
+   "offset": {
+    "x": -53,
+    "y": -106
+   }
+  },
+  {
+   "name": "whole-with-sprite",
+   "title": "the whole effect with the sprite in it",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 15,
+   "frame": {
+    "w": 106,
+    "h": 106
+   },
+   "sheets": [
+    {
+     "file": "whole-with-sprite.png",
+     "first_frame": 0,
+     "frames": 15,
+     "columns": 4,
+     "rows": 4
+    }
+   ],
+   "offset": {
+    "x": -53,
+    "y": -106
+   }
+  },
+  {
+   "name": "front",
+   "title": "everything in front of the sprite",
+   "depth": "front",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 14,
+   "frame": {
+    "w": 106,
+    "h": 96
+   },
+   "sheets": [
+    {
+     "file": "front.png",
+     "first_frame": 0,
+     "frames": 14,
+     "columns": 4,
+     "rows": 4
+    }
+   ],
+   "offset": {
+    "x": -53,
+    "y": -106
+   }
+  },
+  {
+   "name": "part-gold",
+   "title": "the gold part",
+   "depth": "front",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 10,
+   "frame": {
+    "w": 53,
+    "h": 96
+   },
+   "sheets": [
+    {
+     "file": "part-gold.png",
+     "first_frame": 0,
+     "frames": 10,
+     "columns": 4,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -26,
+    "y": -106
+   }
+  },
+  {
+   "name": "part-confetti",
+   "title": "the confetti part",
+   "depth": "front",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 11,
+   "frame": {
+    "w": 71,
+    "h": 71
+   },
+   "sheets": [
+    {
+     "file": "part-confetti.png",
+     "first_frame": 0,
+     "frames": 11,
+     "columns": 4,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -32,
+    "y": -87
+   }
+  },
+  {
+   "name": "part-pink",
+   "title": "the pink part",
+   "depth": "front",
+   "loop": false,
+   "start_frame": 3,
+   "frames": 9,
+   "frame": {
+    "w": 42,
+    "h": 64
+   },
+   "sheets": [
+    {
+     "file": "part-pink.png",
+     "first_frame": 0,
+     "frames": 9,
+     "columns": 3,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": 11,
+    "y": -86
+   }
+  },
+  {
+   "name": "part-green",
+   "title": "the green part",
+   "depth": "front",
+   "loop": false,
+   "start_frame": 5,
+   "frames": 9,
+   "frame": {
+    "w": 42,
+    "h": 58
+   },
+   "sheets": [
+    {
+     "file": "part-green.png",
+     "first_frame": 0,
+     "frames": 9,
+     "columns": 3,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -53,
+    "y": -83
+   }
+  }
+ ]
+}

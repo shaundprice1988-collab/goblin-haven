@@ -1,0 +1,44 @@
+{
+ "app": "PixelLab VFX Creator",
+ "name": "Goblin Haven - proj-coin",
+ "fps": 16,
+ "frame_ms": 63,
+ "frames": 8,
+ "loop": true,
+ "canvas": {
+  "w": 16,
+  "h": 16
+ },
+ "anchor": {
+  "kind": "origin",
+  "x": 8,
+  "y": 8
+ },
+ "clips": [
+  {
+   "name": "whole",
+   "title": "the whole effect, no sprite",
+   "depth": "both",
+   "loop": true,
+   "start_frame": 0,
+   "frames": 8,
+   "frame": {
+    "w": 10,
+    "h": 10
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 8,
+     "columns": 3,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -4,
+    "y": -6
+   }
+  }
+ ]
+}

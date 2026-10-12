@@ -37,10 +37,12 @@
     if (id === 'gank' && !target) { if (!auto) A.sys('Nobody to gank yet. Wait for an adventurer to arrive.', '', 'trick'); return false; }
     if (!M.castTrick(S, id, now)) return false;
     GH.emit('trick', id, auto);
+    A.scene.fx('trick-' + id, id === 'gank' ? 'enemy' : 'hero');
     if (id === 'gank') {
       const dmg = 30 * A.dpsNow() + 10 * A.tapBase();
       const whale = e.whale;
       A.scene.heroAttack();
+      if (A.scene.skipNextHitFx) A.scene.skipNextHitFx(); // the gank VFX stands in for the crit spark
       A.hitEnemy(dmg, true, 'GANK ' + fmt(dmg, true), pnow);
       if (whale && e.dead) shadow('s_ks');
     } else if (!auto) A.scene.float(`${M.TRICK[id].name}!`, id === 'ninja' ? '#F2C14E' : '#B6E07A', true);

@@ -278,7 +278,7 @@
     const skin = HUMAN_SKIN[Math.floor(r() * HUMAN_SKIN.length)];
     const hair = HAIR[Math.floor(r() * HAIR.length)];
     const h = big ? 22 : 16;
-    const base = { h, skin, hair, facing: -1, pants: '#3A3A48' };
+    const base = { h, skin, hair, facing: -1, pants: '#3A3A48', cls, seed }; // cls + seed pick the PixelLab sprite
     switch (cls) {
       case 'warrior': return Object.assign(base, { shirt: ['#9A3B32', '#2F5E9A', '#7A6A2A'][Math.floor(r() * 3)], hat: 'helm', weapon: 'sword', shield: ['#7A2E24', '#2E4A7A', '#5A5A62'][Math.floor(r() * 3)] });
       case 'mage': return Object.assign(base, { robe: ['#3A55A0', '#6A2E8A', '#9A2E3A'][Math.floor(r() * 3)], hat: 'wizard', hatColor: '#2A2A60', weapon: 'staff', orb: '#8FD4FF' });
@@ -574,35 +574,157 @@
   // ------------------------------------------------------------------ scene
   const ANIMATED_PROPS = new Set([2, 6, 9, 11]); // windmill, volcano, floating islands, the spire
   // ------------------------------------------------------------------ PixelLab sprites
-  // sprites/manifest.json lists the PNGs that exist: { "goblin": { "east": "sprites/goblin/east.png" } }.
-  // Anything not listed (or not loaded yet) falls back to the procedural drawing.
+  // sprites/manifest.json lists the PNGs that exist. Characters are keyed by facing:
+  //   "goblin": { "east": "sprites/goblin/east.png" }, "adv-warrior-0": { "west": "..." }, "boss-valkor": { "west": "..." }
+  // Backgrounds give the image and the row where its ground starts: "bg-0": { "bg": "sprites/bg/0.png", "horizon": 166 }
+  // Sprites are drawn 1:1 on the scene's fine grid. Anything not listed (or not loaded yet) falls back to the procedural drawing.
+  // Adventurer class sprites are numbered variants (adv-<class>-<n>); each adventurer picks one from its seed.
   const SPRITES = {};
+  const VARIANTS = {};
+  function cropInfo(img) {
+    const c = document.createElement('canvas');
+    c.width = img.width; c.height = img.height;
+    const cg = c.getContext('2d');
+    cg.drawImage(img, 0, 0);
+    const d = cg.getImageData(0, 0, c.width, c.height).data;
+    let x0 = c.width, y0 = c.height, x1 = -1, y1 = -1;
+    for (let y = 0; y < c.height; y++) for (let x = 0; x < c.width; x++) {
+      if (d[(y * c.width + x) * 4 + 3] > 8) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+    }
+    if (x1 < 0) return null;
+    // the middle of the top few rows is roughly where the head is, for event hats
+    let hs = 0, hn = 0;
+    for (let y = y0; y < Math.min(y1 + 1, y0 + 3); y++) for (let x = x0; x <= x1; x++) if (d[(y * c.width + x) * 4 + 3] > 8) { hs += x; hn++; }
+    return { img, x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1, hx: (hn ? hs / hn : (x0 + x1) / 2) - x0 };
+  }
+  // VFX made with PixelLab's VFX Creator: "fx-hit": { "pack": "sprites/fx/hit/manifest.json" } points at the exported game pack.
+  // Each clip is a sheet of frames placed at an anchor (the target's feet) plus an offset, all in fine pixels. A pack has a
+  // "whole" clip and, when the effect wraps around a body, "behind" and "front" clips to draw either side of the character.
+  const VFX = {};
+  function loadFx(name, packUrl) {
+    const dir = packUrl.slice(0, packUrl.lastIndexOf('/') + 1);
+    fetch(packUrl).then((r) => r.json()).then((p) => {
+      const want = (p.clips || []).filter((k) => ['whole', 'behind', 'front'].includes(k.name) && k.sheets && k.sheets.length);
+      if (!want.some((k) => k.name === 'whole')) return;
+      const def = { fps: p.fps || 12, loop: !!p.loop, total: p.frames || 1, clips: {} };
+      let left = want.length;
+      for (const c of want) {
+        const sh = c.sheets[0], img = new Image();
+        img.onload = () => {
+          def.clips[c.name] = { img, frames: c.frames, start: c.start_frame || 0, fw: c.frame.w, fh: c.frame.h, cols: sh.columns || c.frames, ox: c.offset.x, oy: c.offset.y };
+          if (!--left) VFX[name] = def;
+        };
+        img.onerror = () => { if (!--left && def.clips.whole) VFX[name] = def; };
+        img.src = dir + sh.file;
+      }
+    }).catch(() => {});
+  }
+  // Animation frames share one crop (the union of every frame's opaque pixels) so the figure doesn't jitter.
+  function loadFrames(entry, key, urls) {
+    const imgs = urls.map((u) => { const img = new Image(); img.src = u; return img; });
+    let left = imgs.length;
+    imgs.forEach((img) => { img.onload = img.onerror = () => { if (--left) return;
+      const boxes = imgs.map((im) => (im.naturalWidth ? cropInfo(im) : null));
+      if (boxes.some((b) => !b)) return;
+      const x0 = Math.min(...boxes.map((b) => b.x)), y0 = Math.min(...boxes.map((b) => b.y));
+      const x1 = Math.max(...boxes.map((b) => b.x + b.w)), y1 = Math.max(...boxes.map((b) => b.y + b.h));
+      // anchor every frame on frame 0's body (the rest pose): its centre and its feet, so a weapon swinging out
+      // past the body doesn't shift the figure
+      const f0 = boxes[0], ax = f0.x + f0.w / 2 - x0, ay = f0.y + f0.h - y0;
+      entry[key] = boxes.map((b) => ({ img: b.img, x: x0, y: y0, w: x1 - x0, h: y1 - y0, hx: b.hx + b.x - x0, ty: b.y - y0, ax, ay, bodyH: f0.h }));
+      artChanged();
+    }; });
+  }
+  // Callbacks for when sprite images arrive, so cached UI images (portraits, unit icons) can be redrawn.
+  const artListeners = [];
+  let artTimer = 0;
+  const artChanged = () => { clearTimeout(artTimer); artTimer = setTimeout(() => artListeners.forEach((f) => f()), 150); };
   function loadSprites() {
     fetch('sprites/manifest.json').then((r) => (r.ok ? r.json() : {})).then((m) => {
-      for (const id in m) for (const dir in m[id]) {
-        const img = new Image();
-        img.onload = () => {
-          // crop to the opaque pixels so feet sit on the ground line
-          const c = document.createElement('canvas');
-          c.width = img.width; c.height = img.height;
-          const cg = c.getContext('2d');
-          cg.drawImage(img, 0, 0);
-          const d = cg.getImageData(0, 0, c.width, c.height).data;
-          let x0 = c.width, y0 = c.height, x1 = -1, y1 = -1;
-          for (let y = 0; y < c.height; y++) for (let x = 0; x < c.width; x++) {
-            if (d[(y * c.width + x) * 4 + 3] > 8) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
-          }
-          if (x1 < 0) return;
-          (SPRITES[id] = SPRITES[id] || {})[dir] = { img, x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
-        };
-        img.src = m[id][dir];
+      for (const id in m) {
+        if (m[id].pack) { loadFx(id.replace(/^fx-/, ''), m[id].pack); continue; }
+        const entry = SPRITES[id] = {};
+        const v = /^adv-([a-z]+)-\d+$/.exec(id);
+        if (v) (VARIANTS[v[1]] = VARIANTS[v[1]] || []).push(id);
+        for (const key in m[id]) {
+          const val = m[id][key];
+          if (Array.isArray(val)) { loadFrames(entry, key, val); continue; } // animation frames, e.g. "attack"
+          if (typeof val !== 'string') { entry[key] = val; continue; } // numbers such as "horizon"
+          const img = new Image();
+          img.onload = () => {
+            if (key === 'bg') entry.bg = { img, x: 0, y: 0, w: img.width, h: img.height };
+            else { const s = cropInfo(img); if (s) entry[key] = s; }
+            artChanged();
+          };
+          img.src = val;
+        }
       }
     }).catch(() => {});
   }
   if (typeof document !== 'undefined') loadSprites();
   function sprite(id, dir) { return SPRITES[id] && SPRITES[id][dir]; }
-  // Scale test switch (temporary): ?spr=off | native | fit | hires
-  const SPR_MODE = (typeof location !== 'undefined' && new URLSearchParams(location.search).get('spr')) || 'hires';
+  // A one-colour silhouette of a sprite: white for the hit flash, gold for a boss's glow. Cached per colour.
+  function tintOf(s, color) {
+    s.tints = s.tints || {};
+    if (s.tints[color]) return s.tints[color];
+    const c = document.createElement('canvas');
+    c.width = s.img.width; c.height = s.img.height;
+    const cg = c.getContext('2d');
+    cg.drawImage(s.img, 0, 0);
+    cg.globalCompositeOperation = 'source-in';
+    cg.fillStyle = color; cg.fillRect(0, 0, c.width, c.height);
+    return (s.tints[color] = c);
+  }
+  const slug = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+  // Which sprite an adventurer look uses: a named one first (bosses, the whale), then a class variant. Returns its id.
+  function lookSpriteId(L, named) {
+    for (const id of named || []) if (id && sprite(id, 'west')) return id;
+    const list = VARIANTS[L.cls];
+    if (!list || !list.length) return null;
+    const id = list[(L.seed >>> 0) % list.length];
+    return sprite(id, 'west') ? id : null;
+  }
+  const lookSprite = (L, named) => { const id = lookSpriteId(L, named); return id ? sprite(id, 'west') : null; };
+  // Warband unit i at rank r: three gear tiers (recruits, veterans from rank 2, elites from rank 4), facing east.
+  // A missing tier falls back to the one below it.
+  function unitSprite(i, r) {
+    for (let tier = r >= 4 ? 2 : r >= 2 ? 1 : 0; tier >= 0; tier--) { const s = sprite(`unit-${i}-${tier}`, 'east'); if (s) return s; }
+    return null;
+  }
+  const EVENT_HATS = new Set(['party', 'pumpkin', 'santa', 'flower']);
+  // impact VFX when a warband unit's shot lands: rock slingers and scrap catapults, boom barrels, shamans
+  const SHOT_FX = { 1: 'rock', 4: 'boom', 5: 'hex', 6: 'rock' };
+
+  // ------------------------------------------------------------------ combat styles
+  // How a fighter attacks, for both sides. Every effect is made facing right and mirrored for adventurers.
+  //   melee:  the attacker lunges in and a trail (fx) plays in front of it
+  //   proj:   a cast flash at the hand, then proj-<proj> flies to the target and impact-<proj> plays on it
+  //   strike: fx lands straight on the target
+  const MELEE = (fx) => ({ kind: 'melee', fx });
+  const PROJ = (proj, cast) => ({ kind: 'proj', proj, cast: cast === undefined ? 'cast-' + proj : cast });
+  const STRIKE = (fx) => ({ kind: 'strike', fx });
+  const COMBAT_CLASS = { warrior: MELEE('slash'), rogue: MELEE('stab'), mage: PROJ('arcane'), ranger: PROJ('arrow', null), cleric: STRIKE('smite'), gm: STRIKE('gm-bolt') };
+  const COMBAT_SPRITE = {
+    'adv-warrior-2': MELEE('slash-heavy'), 'adv-mage-2': PROJ('fire'),
+    'boss-gobbofarmer99': MELEE('slash-heavy'), 'boss-rangerelowen': PROJ('arrow', null), 'boss-captainharrow': MELEE('stab'),
+    'boss-swampdaddy': PROJ('poison', 'cast-arcane'), 'boss-necronate': PROJ('poison', 'cast-arcane'), 'boss-brrrian': MELEE('slash-heavy'),
+    'boss-pyrequeen': PROJ('fire'), 'boss-lordcastellanvey': MELEE('slash'), 'boss-kingofkingsreach': MELEE('stab'),
+    'boss-seraphine': STRIKE('smite'), 'boss-valkor': MELEE('slash-heavy'), 'boss-gmaldric': STRIKE('gm-bolt'),
+    whale: PROJ('coin', null),
+    // the hero's evolution forms (anything not listed swings with the goblin's club trail)
+    goblin: MELEE('swing'), nilbog: MELEE('swing'), boss: MELEE('slash'), mephit: PROJ('fire'), barghest: MELEE('claw'),
+    bugbear: MELEE('smash'), bugchief: MELEE('smash'), yeti: MELEE('claw'), abominable: MELEE('claw'),
+    hobgoblin: MELEE('slash'), hobcaptain: MELEE('slash'), warlord: MELEE('slash-heavy'), ironshadow: MELEE('stab'), devastator: PROJ('fire'),
+    orc: MELEE('slash-heavy'), nurtured: MELEE('claw'), orog: MELEE('slash-heavy'), eye: MELEE('stab'), hand: PROJ('poison', 'cast-arcane'),
+    claw: MELEE('claw'), redfang: MELEE('stab'), blade: MELEE('slash-heavy'), warchief: MELEE('slash-heavy'), tanarukk: MELEE('slash-heavy'),
+    ogre: MELEE('smash'), chainbrute: MELEE('smash'), oni: MELEE('slash-heavy'), troll: MELEE('claw'), diretroll: MELEE('claw'),
+  };
+  const combatOf = (spriteId, cls) => COMBAT_SPRITE[spriteId] || COMBAT_CLASS[cls] || MELEE('slash');
+  // The attack frame where the blow lands, for animations that don't strike near the middle (default: RELEASE).
+  const STRIKE_FRAME = { 'adv-gm-0': 6, 'adv-rogue-0': 6, 'boss-brrrian': 6, 'boss-lordcastellanvey': 5, 'boss-rangerelowen': 4, 'boss-pyrequeen': 4, 'boss-seraphine': 4,
+    // hero forms (facing east)
+    nilbog: 3, abominable: 3, warlord: 5, ironshadow: 5, orc: 5, orog: 5, blade: 5, ogre: 5, oni: 5, chainbrute: 6 };
+  const PROJ_SPEED = { arrow: 150, coin: 110 }; // scene units per second; spells default to 95
 
   function createScene(canvas) {
     const ctx = canvas.getContext('2d');
@@ -612,25 +734,154 @@
     const sg = spr.getContext('2d');
     const sil = document.createElement('canvas');
     const silg = sil.getContext('2d');
-    // Draw a sprite with a 1px dark outline so it reads against any backdrop.
+    // The scene's canvases are on a fine grid: 2 fine pixels per scene unit. Procedural art draws in scene units
+    // through a 2x transform (so it keeps its chunky look); PixelLab sprites draw 1:1 in fine pixels.
+    const FX = 2;
+    const fine = (c, fn) => { c.save(); c.setTransform(1, 0, 0, 1, 0, 0); fn(); c.restore(); };
+    // Draw a procedural figure with a 1-unit dark outline so it reads against any backdrop.
     function outlined(draw, color) {
       sg.clearRect(0, 0, W, H);
       const res = draw(sg);
       silg.globalCompositeOperation = 'source-over';
-      silg.clearRect(0, 0, W, H);
+      silg.clearRect(0, 0, W * FX, H * FX);
       silg.drawImage(spr, 0, 0);
       silg.globalCompositeOperation = 'source-in';
       silg.fillStyle = color || 'rgba(14,10,8,0.85)';
-      silg.fillRect(0, 0, W, H);
-      g.drawImage(sil, -1, 0); g.drawImage(sil, 1, 0); g.drawImage(sil, 0, -1); g.drawImage(sil, 0, 1);
-      g.drawImage(spr, 0, 0);
+      silg.fillRect(0, 0, W * FX, H * FX);
+      fine(g, () => {
+        g.drawImage(sil, -FX, 0); g.drawImage(sil, FX, 0); g.drawImage(sil, 0, -FX); g.drawImage(sil, 0, FX);
+        g.drawImage(spr, 0, 0);
+      });
       return res;
+    }
+    // Draw a PixelLab sprite 1:1 on the fine grid, centred on cx with its feet on fy (both in scene units).
+    // Returns the top of the sprite and its height, in scene units.
+    function drawSprite(s, cx, fy, o) {
+      o = o || {};
+      // animation frames carry an anchor (ax, ay) on the rest pose's centre and feet; stills centre their crop
+      const dx = Math.round(cx * FX - (s.ax != null ? s.ax : s.w / 2)), dy = Math.round(fy * FX) - (s.ay != null ? s.ay : s.h);
+      fine(g, () => {
+        if (o.alpha != null) g.globalAlpha = o.alpha;
+        if (o.glow) { const gl = tintOf(s, o.glow); for (const [ox, oy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) g.drawImage(gl, s.x, s.y, s.w, s.h, dx + ox, dy + oy, s.w, s.h); }
+        g.drawImage(o.flash ? tintOf(s, '#FFFFFF') : s.img, s.x, s.y, s.w, s.h, dx, dy, s.w, s.h);
+      });
+      const h = (s.bodyH || s.h) / FX; // an animation reports its rest-pose height so labels don't bounce
+      return { top: fy - h, h };
+    }
+    // ---- VFX. One-shots are queued with playFx and drop out when done; loops (the campfire) are drawn each frame by loopFx.
+    // x and fy are the anchor in scene units (a character's feet). flip mirrors an effect made for the other facing.
+    // base: true ignores the pack's offset and stands the frame's bottom-centre on the anchor.
+    const fxs = [];
+    let skipHitFx = false;
+    function playFx(name, x, fy, o) {
+      const d = VFX[name];
+      if (!d || reduce) return false;
+      if (fxs.length >= 14) fxs.shift();
+      fxs.push({ d, x, fy, t: 0, flip: !!(o && o.flip), base: !!(o && o.base), center: !!(o && o.center) });
+      return true;
+    }
+    // Projectiles: proj-<kind> loops in place while code flies it from (x0, y0) to (x1, y1); y is the projectile's
+    // centre, not feet. On arrival impact-<kind> plays at the target's feet and onHit runs (a flash on the target).
+    const bolts = [];
+    let heroHurt = 0;
+    function fireBolt(kind, x0, y0, x1, y1, feetX, onHit) {
+      const d = VFX['proj-' + kind];
+      if (!d || reduce || bolts.length >= 8) { playFx('impact-' + kind, feetX, FY); if (onHit) onHit(); return; }
+      const dist = Math.hypot(x1 - x0, y1 - y0);
+      bolts.push({ d, kind, x0, y0, x1, y1, feetX, onHit, t: 0, dur: Math.max(0.12, dist / (PROJ_SPEED[kind] || 95)), flip: x1 < x0, arc: kind === 'arrow' || kind === 'coin' ? 3 : 0 });
+    }
+    function drawBolts(dt) {
+      for (let k = 0; k < bolts.length; k++) {
+        const b = bolts[k];
+        b.t += dt;
+        const p = Math.min(1, b.t / b.dur);
+        const c = b.d.clips.whole, per = (c.start + c.frames) / b.d.fps;
+        clipFrame(b.d, c, b.x0 + (b.x1 - b.x0) * p, b.y0 + (b.y1 - b.y0) * p - Math.sin(p * Math.PI) * b.arc, b.t % per, b.flip, false, true);
+        if (p >= 1) { playFx('impact-' + b.kind, b.feetX, FY); if (b.onHit) b.onHit(); bolts.splice(k, 1); k--; }
+      }
+    }
+    // Draw one clip of an effect at effect time t (seconds). Loops wrap; one-shots draw nothing outside their frames.
+    // base: stand the frame's bottom-centre on the point; center: centre the frame on it (projectiles, cast flashes).
+    function clipFrame(d, c, x, fy, t, flip, base, center) {
+      if (!c) return;
+      const n = Math.floor(t * d.fps) - c.start;
+      if (n < 0 || (!d.loop && n >= c.frames)) return;
+      const k = d.loop ? n % c.frames : n;
+      const sx = (k % c.cols) * c.fw, sy = Math.floor(k / c.cols) * c.fh;
+      const ax = Math.round(x * FX), ay = Math.round(fy * FX);
+      const ox = base || center ? -Math.round(c.fw / 2) : c.ox, oy = base ? -c.fh : center ? -Math.round(c.fh / 2) : c.oy;
+      fine(g, () => {
+        if (flip) { g.translate(ax, 0); g.scale(-1, 1); g.drawImage(c.img, sx, sy, c.fw, c.fh, ox, ay + oy, c.fw, c.fh); }
+        else g.drawImage(c.img, sx, sy, c.fw, c.fh, ax + ox, ay + oy, c.fw, c.fh);
+      });
+    }
+    // Two passes a frame: 'behind' before the hero and enemies are drawn (it also advances time), 'front' after them.
+    // A pack without behind/front clips draws its whole clip in the front pass.
+    function drawFxs(dt, layer) {
+      for (let k = 0; k < fxs.length; k++) {
+        const f = fxs[k], cl = f.d.clips;
+        if (layer === 'behind') { f.t += dt; clipFrame(f.d, cl.behind, f.x, f.fy, f.t, f.flip, f.base, f.center); continue; }
+        clipFrame(f.d, cl.front || (cl.behind ? null : cl.whole), f.x, f.fy, f.t, f.flip, f.base, f.center);
+        if (f.t * f.d.fps >= f.d.total) { fxs.splice(k, 1); k--; }
+      }
+    }
+    function loopFx(name, x, fy, t, o) {
+      const d = VFX[name];
+      if (!d) return false;
+      const c = d.clips.whole, per = (c.start + c.frames) / d.fps; // wrap even if the pack was exported as a one-shot
+      clipFrame(d, c, x, fy, reduce ? 0 : t % per, !!(o && o.flip), !!(o && o.base));
+      return true;
+    }
+    let heroXNow = 0, heroAnim = 1, heroHNow = 16, heroFormNow = 'goblin', heroPending = false;
+    const RELEASE = 0.55; // how far into an attack animation the blow lands
+    // An adventurer's blow lands on the hero, in its combat style (see COMBAT_SPRITE).
+    function enemyStrike(e, p, style) {
+      const hurt = () => { heroHurt = 0.1; };
+      if (style.kind === 'melee') { playFx(style.fx, p.x - 8, FY, { flip: true }); hurt(); return; }
+      if (style.kind === 'strike') { playFx(style.fx, heroXNow, FY); heroHurt = 0.14; return; }
+      const hx = p.x - 5, hy = FY - (e.drawH || e.look.h) * 0.62; // the staff/bow hand, on the side facing the hero
+      if (style.cast) playFx(style.cast, hx, hy, { center: true, flip: true });
+      fireBolt(style.proj, hx, hy, heroXNow + 2, FY - heroHNow * 0.55, heroXNow, hurt);
+    }
+    // The hero's tap attack, in its form's combat style.
+    function heroStrike() {
+      const style = combatOf(heroFormNow, null), e = st.enemy;
+      const ex = e && !e.dead ? enemyPos(e, performance.now()).x : null;
+      if (style.kind === 'melee') { playFx(style.fx, heroXNow + 1, FY); return; }
+      if (ex == null) return;
+      if (style.kind === 'strike') { playFx(style.fx, ex, FY); return; }
+      const hx = heroXNow + 5, hy = FY - heroHNow * 0.6;
+      if (style.cast) playFx(style.cast, hx, hy, { center: true });
+      fireBolt(style.proj, hx, hy, ex - 2, FY - (e.drawH || 16) * 0.55, ex, null);
+    }
+    // A warband unit: the PixelLab sprite for its rank's gear tier if there is one, else the procedural drawing.
+    // Returns the top of the figure in scene units. Units lean in as they attack; legends (rank 5) glow cyan.
+    function unitAt(i, x, fy, t, ph, r) {
+      const s = unitSprite(i, r || 0);
+      if (!s) return drawUnit(g, i, x, fy, t, ph, r);
+      const bob = Math.sin(t * 3 + i) > 0.6 ? 1 : 0, lean = ph > 0.8 ? 1 : 0;
+      return drawSprite(s, x + lean, fy - bob, { glow: r >= 5 ? 'rgba(127,224,245,0.8)' : null }).top;
+    }
+    // Event hats (party, pumpkin, santa, flower) sit on a sprite's head, drawn in scene units like the procedural ones.
+    function spriteHat(s, cx, fy, hat) {
+      const left = cx * FX - (s.ax != null ? s.ax : s.w / 2), top = Math.round(fy * FX) - (s.ay != null ? s.ay : s.h) + (s.ty || 0);
+      const hx = Math.round((left + s.hx) / FX), hy = Math.round(top / FX);
+      switch (hat) {
+        case 'party': px(g, hx - 2, hy - 1, 5, 1, '#FF4F8B'); px(g, hx - 1, hy - 2, 3, 1, '#F2C14E'); px(g, hx - 1, hy - 3, 2, 1, '#7FE0F5'); px(g, hx, hy - 4, 1, 1, '#FF4F8B'); px(g, hx, hy - 5, 1, 1, '#FFFFFF'); break;
+        case 'pumpkin': px(g, hx - 3, hy - 3, 7, 3, '#E8762A'); px(g, hx - 1, hy - 3, 1, 3, '#C85A1A'); px(g, hx + 1, hy - 3, 1, 3, '#C85A1A'); px(g, hx, hy - 4, 1, 1, '#4E7A3A'); break;
+        case 'santa': px(g, hx - 3, hy - 1, 7, 1, '#F2EEDC'); px(g, hx - 2, hy - 3, 5, 2, '#C0392B'); px(g, hx + 3, hy - 3, 2, 1, '#C0392B'); px(g, hx + 5, hy - 2, 1, 1, '#FFFFFF'); break;
+        case 'flower': px(g, hx - 3, hy - 1, 7, 1, '#5E8A3A'); px(g, hx - 3, hy - 2, 1, 1, '#FF9EC4'); px(g, hx - 1, hy - 2, 1, 1, '#F2C14E'); px(g, hx + 1, hy - 2, 1, 1, '#FFFFFF'); px(g, hx + 3, hy - 2, 1, 1, '#FF9EC4'); break;
+        default: break;
+      }
     }
     const bgC = document.createElement('canvas');
     const bg = bgC.getContext('2d');
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     let CW = 0, CH = 0, DPR = 1, SCALE = 3, W = 0, H = 0, G = 0, FY = 0;
+    // Field layout in scene units, set by resize: hero (HX), where enemies stand (SX), how far they walk in (ENTER),
+    // the village's right edge (VX). WIDE is the landscape band of the browser layout.
+    let HX = 57, SX = 80, ENTER = 35, VX = 46, WIDE = false;
     let bgKey = '';
     let floats = [], parts = [], coins = [], weather = [], shots = [];
     let heroSwing = 0, heroLunge = 0, shake = 0, flashT = 0, quietN = 0;
@@ -642,20 +893,73 @@
       CW = Math.max(1, r.width); CH = Math.max(1, r.height);
       DPR = Math.min(3, window.devicePixelRatio || 1);
       canvas.width = Math.round(CW * DPR); canvas.height = Math.round(CH * DPR);
-      SCALE = Math.max(2, Math.round(CW / 100));
+      // CSS px per scene unit, always even so fine pixels are whole. A phone-shaped scene is about 100 units wide;
+      // a landscape band is about 100 units tall and as wide as it needs to be.
+      WIDE = CW > CH * 1.5;
+      SCALE = FX * Math.max(1, Math.round((WIDE ? CH : CW) / 200));
       W = Math.ceil(CW / SCALE); H = Math.ceil(CH / SCALE);
-      low.width = W; low.height = H; bgC.width = W; bgC.height = H;
-      spr.width = W; spr.height = H; sil.width = W; sil.height = H;
+      if (WIDE) { HX = Math.round(W * 0.6); SX = HX + 26; VX = HX - 12; ENTER = W + 12 - SX; } // fighters keep their spacing; the village fills the left
+      else { HX = Math.round(W * 0.57); SX = Math.round(W * 0.8); VX = Math.round(W * 0.46); ENTER = Math.round(W * 0.35); }
+      for (const c of [low, bgC, spr, sil]) { c.width = W * FX; c.height = H * FX; }
+      for (const c of [g, bg, sg]) { c.setTransform(FX, 0, 0, FX, 0, 0); c.imageSmoothingEnabled = false; }
+      silg.imageSmoothingEnabled = false;
       G = Math.round(H * 0.64);          // horizon: where the ground starts
       FY = G + Math.round((H - G) * 0.42); // feet of the hero and the adventurers
       bgKey = '';
       weather = [];
     }
 
+    // The PixelLab backdrop for a region, if there is one. Uncharted shards share one.
+    // A landscape band uses the region's 512-wide panorama (bg-<r>-wide) when there is one.
+    const bgSprite = (r) => {
+      const id = r <= 11 ? 'bg-' + r : 'bg-shard', wideE = WIDE && SPRITES[id + '-wide'];
+      if (wideE && wideE.bg) return wideE;
+      const e = SPRITES[id];
+      return e && e.bg ? e : null;
+    };
     function paintBackground(R, r) {
-      const key = `${R.name},${W},${H}`;
+      const art = bgSprite(r);
+      const key = `${R.name},${W},${H},${art ? 1 : 0}`;
       if (key === bgKey) return;
       bgKey = key;
+      if (art) {
+        // The image's ground line sits on the scene's horizon, centred. If the scene is taller or wider than the
+        // image, the edge bands are mirrored outward (sky upward, ground downward, sides outward) to fill the gap.
+        const s = art.bg, img = s.img, w = s.w, h = s.h, BW = W * FX, BH = H * FX;
+        const hz = art.horizon || Math.round(h * 0.65);
+        const dx = Math.round((BW - w) / 2), dy = G * FX - hz;
+        fine(bg, () => {
+          bg.clearRect(0, 0, BW, BH);
+          bg.drawImage(img, dx, dy);
+          for (let y = dy, flip = true; y > 0; flip = !flip) { // sky band, mirrored upward
+            const band = Math.min(hz, y);
+            bg.save(); bg.translate(0, y); if (flip) bg.scale(1, -1);
+            bg.drawImage(img, 0, flip ? 0 : hz - band, w, band, dx, flip ? 0 : -band, w, band);
+            bg.restore(); y -= band;
+          }
+          const gh = h - hz;
+          for (let y = dy + h, flip = true; y < BH && gh > 0; flip = !flip) { // ground band, mirrored downward
+            const band = Math.min(gh, BH - y);
+            bg.save(); bg.translate(0, y); if (flip) bg.scale(1, -1);
+            bg.drawImage(img, 0, flip ? h - band : hz, w, band, dx, flip ? -band : 0, w, band);
+            bg.restore(); y += band;
+          }
+          // columns either side: mirror the image outward, again and again, until the band is covered
+          for (let x = dx, flip = true; x > 0; flip = !flip) {
+            const band = Math.min(w, x);
+            bg.save(); bg.translate(x, 0); if (flip) bg.scale(-1, 1);
+            bg.drawImage(bgC, flip ? dx : dx + w - band, 0, band, BH, flip ? 0 : -band, 0, band, BH);
+            bg.restore(); x -= band;
+          }
+          for (let x = dx + w, flip = true; x < BW; flip = !flip) {
+            const band = Math.min(w, BW - x);
+            bg.save(); bg.translate(x, 0); if (flip) bg.scale(-1, 1);
+            bg.drawImage(bgC, flip ? dx + w - band : dx, 0, band, BH, flip ? -band : 0, 0, band, BH);
+            bg.restore(); x += band;
+          }
+        });
+        return;
+      }
       const sky = bg.createLinearGradient(0, 0, 0, G);
       sky.addColorStop(0, R.sky[0]); sky.addColorStop(1, R.sky[1]);
       bg.fillStyle = sky; bg.fillRect(0, 0, W, H);
@@ -681,7 +985,7 @@
 
     function weatherStep(R, dt, t) {
       if (reduce || R.fx === 'none') return;
-      const want = { snow: 40, rain: 40, ash: 30, fireflies: 10, leaves: 10, wisps: 8, glitch: 6 }[R.fx] || 0;
+      const want = Math.round(({ snow: 40, rain: 40, ash: 30, fireflies: 10, leaves: 10, wisps: 8, glitch: 6 }[R.fx] || 0) * Math.max(1, W / 100));
       while (weather.length < want) weather.push({ x: Math.random() * W, y: Math.random() * H, v: 0.5 + Math.random(), p: Math.random() * TAU });
       for (const w of weather) {
         switch (R.fx) {
@@ -702,9 +1006,8 @@
 
     // enemy layout: x where they stand, walking in from the right
     function enemyPos(e, now) {
-      const standX = Math.round(W * 0.8);
       const p = Math.min(1, (now - e.born) / (e.walk * 1000));
-      return { x: Math.round(standX + (1 - p) * (W * 0.35)), walking: p < 1, p };
+      return { x: Math.round(SX + (1 - p) * ENTER), walking: p < 1, p };
     }
 
     function frame(dt, now, view) {
@@ -713,104 +1016,164 @@
       const R = view.regionData;
       paintBackground(R, view.region);
       g.clearRect(0, 0, W, H);
-      g.drawImage(bgC, 0, 0);
-      // animated bits of the backdrop
-      if (ANIMATED_PROPS.has(view.region)) regionProps(g, W, H, G, view.region, R, t);
+      fine(g, () => g.drawImage(bgC, 0, 0));
+      // animated bits of the procedural backdrop (a PixelLab backdrop has its own)
+      if (ANIMATED_PROPS.has(view.region) && !bgSprite(view.region)) regionProps(g, W, H, G, view.region, R, t);
       weatherStep(R, dt, t);
 
       // ---- village
-      const vx = Math.round(W * 0.46); // village edge
+      const vx = VX; // village edge
       const huts = Math.min(6, 2 + Math.floor(Math.log2(1 + view.goblins) / 1.6));
       for (let k = 0; k < huts; k++) {
-        const hw2 = 9 + (k % 2) * 2;
-        hut(g, 2 + Math.round(k * (vx - 16) / Math.max(1, huts - 1)), G - 3 - (k % 2) * 2, hw2, k % 2 ? '#B8963A' : '#C9A64A', t, k < view.conquered);
+        const hw2 = 9 + (k % 2) * 2, hx = 2 + Math.round(k * (vx - 16) / Math.max(1, huts - 1)), hfy = G - 3 - (k % 2) * 2;
+        // conquered regions fly a banner over a hut
+        const hs2 = sprite(k < view.conquered ? 'hut-banner' : 'hut', 'east') || sprite('hut', 'east');
+        if (hs2) drawSprite(hs2, hx + hw2 / 2, hfy + 2);
+        else hut(g, hx, hfy, hw2, k % 2 ? '#B8963A' : '#C9A64A', t, k < view.conquered);
       }
       // campfire
       const fx2 = Math.round(vx * 0.55);
-      px(g, fx2 - 2, G + 2, 5, 1, '#3A2A1A');
-      px(g, fx2 - 1, G - 1 + (Math.sin(t * 9) > 0 ? 0 : 1), 3, 3, '#FF8A3D');
-      px(g, fx2, G - 2 + (Math.sin(t * 11) > 0 ? 0 : 1), 1, 2, '#FFE08A');
-      if (view.palisade) { for (let k = 0; k < 5; k++) { px(g, vx - 2, G - 10 + k * 2, 2, 2, k % 2 ? '#7A5230' : '#6B4628'); } px(g, vx - 2, G - 11, 1, 1, '#8B6A40'); }
-      if (view.tower) { px(g, 4, G - 34, 2, 30, '#6B4628'); px(g, 12, G - 34, 2, 30, '#6B4628'); px(g, 2, G - 38, 14, 4, '#7A5230'); px(g, 3, G - 41, 12, 3, '#B8963A'); }
+      if (!loopFx('campfire', fx2, G + 3, t, { base: true })) {
+        px(g, fx2 - 2, G + 2, 5, 1, '#3A2A1A');
+        px(g, fx2 - 1, G - 1 + (Math.sin(t * 9) > 0 ? 0 : 1), 3, 3, '#FF8A3D');
+        px(g, fx2, G - 2 + (Math.sin(t * 11) > 0 ? 0 : 1), 1, 2, '#FFE08A');
+      }
+      const pal = sprite('palisade', 'east'), tow = sprite('tower', 'east');
+      if (view.palisade && pal) drawSprite(pal, vx - 1, G + 1);
+      else if (view.palisade) { for (let k = 0; k < 5; k++) { px(g, vx - 2, G - 10 + k * 2, 2, 2, k % 2 ? '#7A5230' : '#6B4628'); } px(g, vx - 2, G - 11, 1, 1, '#8B6A40'); }
+      if (view.tower && tow) drawSprite(tow, 9, G - 2);
+      else if (view.tower) { px(g, 4, G - 34, 2, 30, '#6B4628'); px(g, 12, G - 34, 2, 30, '#6B4628'); px(g, 2, G - 38, 14, 4, '#7A5230'); px(g, 3, G - 41, 12, 3, '#B8963A'); }
 
       // units, newest types near the front
       const owned = view.owned;
       const slots = [];
       for (let i = 0; i < owned.length; i++) if (owned[i] > 0) slots.push(i);
-      const ground = slots.filter((i) => i !== 8 && i !== 9 && i !== 10);
-      const air = slots.filter((i) => i === 8 || i === 9 || i === 10);
+      // sprites are much bigger than the old procedural units, so a narrow (phone) scene shows only the newest few types
+      const big = !WIDE && (unitSprite(0, 0) || unitSprite(1, 0));
+      const ground = slots.filter((i) => i !== 8 && i !== 9 && i !== 10).slice(big ? -5 : 0);
+      const air = slots.filter((i) => i === 8 || i === 9 || i === 10).slice(big ? -2 : 0);
       const ranks = view.ranks || [];
       ground.forEach((i, k) => {
         const row = k % 2;
         const x = Math.round(6 + (k * (vx - 6)) / Math.max(1, ground.length) + 4);
         const ph = ((t * (0.6 + i * 0.07) + i * 0.37) % 1);
         const fy = G + 5 + row * Math.round((H - G) * 0.42);
-        const top = drawUnit(g, i, x, fy, t, ph, ranks[i]);
+        const top = unitAt(i, x, fy, t, ph, ranks[i]);
         if (rankFx[i] > 0) rankBurst(i, x, top, fy, rankFx[i]);
         if (st.enemy && !st.enemy.dead && ph > 0.8 && ph - dt * (0.6 + i * 0.07) <= 0.8 && !reduce) shoot(i, x, G - 2, ranks[i]);
       });
       air.forEach((i, k) => {
         const x = Math.round(10 + k * 14 + Math.sin(t * 0.5 + k) * 3);
         const ph = ((t * 0.5 + i * 0.37) % 1);
-        const top = drawUnit(g, i, x, G + 4, t, ph, ranks[i]);
+        const top = unitAt(i, x, G + 4, t, ph, ranks[i]);
         if (rankFx[i] > 0) rankBurst(i, x, top, top + 6, rankFx[i]);
         if (st.enemy && !st.enemy.dead && ph > 0.8 && ph - dt * 0.5 <= 0.8 && !reduce) shoot(i, x, G - 26, ranks[i]);
       });
       for (const k in rankFx) rankFx[k] = Math.max(0, rankFx[k] - dt);
       // a crowd of plain goblins grows with the village
-      const crowd = Math.min(10, Math.floor(Math.log2(1 + view.goblins) * 1.2));
+      const crowd = Math.min(big ? 4 : 10, Math.floor(Math.log2(1 + view.goblins) * 1.2));
       for (let k = 0; k < crowd; k++) {
-        const x = Math.round(5 + ((k * 37) % Math.max(10, vx - 10)));
-        humanoid(g, x, G + 1, goblinLook({ h: 7, skin: k % 3 ? '#7FA650' : '#8DB85A', shirt: k % 2 ? '#5A4632' : '#4A3B28' }), { bob: Math.sin(t * 2.5 + k * 1.7) > 0.7 ? 1 : 0 });
+        const x = Math.round(5 + ((k * 37) % Math.max(10, vx - 10))), bob = Math.sin(t * 2.5 + k * 1.7) > 0.7 ? 1 : 0;
+        const cs = sprite('crowd-' + (k % 2), 'east') || sprite('crowd-0', 'east');
+        if (cs) drawSprite(cs, x, G + 1 - bob);
+        else humanoid(g, x, G + 1, goblinLook({ h: 7, skin: k % 3 ? '#7FA650' : '#8DB85A', shirt: k % 2 ? '#5A4632' : '#4A3B28' }), { bob });
       }
+
+      drawFxs(dt, 'behind');
 
       // ---- hero
       heroSwing = Math.max(0, heroSwing - dt * 6);
       heroLunge = Math.max(0, heroLunge - dt * 10);
-      const heroX = Math.round(W * 0.57 + heroLunge * 3);
+      const heroX = Math.round(HX + heroLunge * 3);
+      heroXNow = HX;
       const look = view.heroLook;
-      const heroBob = Math.sin(t * 2.4) > 0.5 ? 1 : 0;
-      const hs = SPR_MODE !== 'off' && sprite(view.heroForm, 'east');
-      let heroTop;
-      if (hs && SPR_MODE === 'native') { // 1 sprite pixel = 1 scene pixel
-        g.drawImage(hs.img, hs.x, hs.y, hs.w, hs.h, Math.round(heroX - hs.w / 2), FY - hs.h - heroBob, hs.w, hs.h);
-        heroTop = { top: FY - hs.h };
-      } else if (hs && SPR_MODE === 'fit') { // squashed down to the form's procedural height
-        const k = look.h / hs.h, w = Math.max(1, Math.round(hs.w * k));
-        g.drawImage(hs.img, hs.x, hs.y, hs.w, hs.h, Math.round(heroX - w / 2), FY - look.h - heroBob, w, look.h);
-        heroTop = { top: FY - look.h };
-      } else if (hs && SPR_MODE === 'hires') {
-        heroTop = { top: FY - look.h, hires: hs }; // drawn after the low-res compose, on the full-res canvas
-      } else {
-        heroTop = outlined((c) => humanoid(c, heroX, FY, look, { swing: heroSwing > 0 ? 1 - heroSwing : 0, bob: heroBob, t }));
+      // sprite frames: an attack animation after each swing, else an idle loop, else the still sprite with a bob
+      const hset = SPRITES[view.heroForm] || {};
+      heroAnim = Math.min(1, heroAnim + dt / 0.32);
+      if (heroPending) {
+        const fr = hset.attack, sf = STRIKE_FRAME[view.heroForm];
+        if (!fr || heroAnim >= (sf != null ? (sf + 0.3) / fr.length : RELEASE)) { heroPending = false; heroStrike(); }
       }
+      let hs = hset.east, heroBob = Math.sin(t * 2.4) > 0.5 ? 1 : 0;
+      if (hs && hset.attack && heroAnim < 1) { hs = hset.attack[Math.min(hset.attack.length - 1, Math.floor(heroAnim * hset.attack.length))]; heroBob = 0; }
+      else if (hs && hset.idle) { hs = hset.idle[Math.floor(t * 6) % hset.idle.length]; heroBob = 0; }
+      heroHurt = Math.max(0, heroHurt - dt);
+      const heroTop = hs ? drawSprite(hs, heroX, FY - heroBob, { flash: heroHurt > 0 })
+        : Object.assign(outlined((c) => humanoid(c, heroX, FY, look, { swing: heroSwing > 0 ? 1 - heroSwing : 0, bob: heroBob, t, flash: heroHurt > 0 })), { h: look.h });
+      heroHNow = heroTop.h; heroFormNow = view.heroForm;
       // corruption flicker on the hero
-      if (!reduce && Math.sin(t * 1.3) > 0.97) px(g, heroX - 3 + Math.floor(Math.random() * 6), heroTop.top + Math.floor(Math.random() * look.h), 2, 1, '#FF4F8B');
+      if (!reduce && Math.sin(t * 1.3) > 0.97) px(g, heroX - 3 + Math.floor(Math.random() * 6), heroTop.top + Math.floor(Math.random() * heroTop.h), 2, 1, '#FF4F8B');
 
       // ---- enemy
       const e = st.enemy;
       let ePos = null;
       if (e) {
         ePos = enemyPos(e, now);
+        if (st.arriveFx && !ePos.walking) { playFx(st.arriveFx, ePos.x, FY); st.arriveFx = null; } // e.g. a boss's beam lands as it arrives
+        // walking adventurers hop a unit every other step; idle ones breathe; a swing leans them at the hero
+        const step = (k) => (ePos.walking ? (Math.sin((t * 3 + k) * TAU) > 0 ? 1 : 0) : (Math.sin(t * 3 + k) > 0.6 ? 1 : 0));
         if (e.raid) {
-          outlined((c) => e.looks.forEach((L, k) => humanoid(c, ePos.x + (k - 1) * 9, FY + (k === 1 ? -2 : 1), L, { walk: ePos.walking ? t * 3 + k : 0, flash: e.flash > 0, bob: e.dead ? 0 : (Math.sin(t * 3 + k) > 0.6 ? 1 : 0) })));
+          const sprs = e.looks.map((L) => lookSprite(L));
+          if (sprs.every(Boolean)) {
+            let tallest = 0;
+            [0, 2, 1].forEach((k) => { // the middle member stands in front
+              const L = e.looks[k], s = sprs[k], x = ePos.x + (k - 1) * 12, fy = FY + (k === 1 ? 1 : -1) - (e.dead ? 0 : step(k));
+              tallest = Math.max(tallest, drawSprite(s, x, fy, { flash: e.flash > 0 }).h);
+              if (EVENT_HATS.has(L.hat)) spriteHat(s, x, fy, L.hat);
+            });
+            e.drawH = tallest + 2;
+          } else {
+            outlined((c) => e.looks.forEach((L, k) => humanoid(c, ePos.x + (k - 1) * 9, FY + (k === 1 ? -2 : 1), L, { walk: ePos.walking ? t * 3 + k : 0, flash: e.flash > 0, bob: e.dead ? 0 : (Math.sin(t * 3 + k) > 0.6 ? 1 : 0) })));
+            e.drawH = 0;
+          }
         } else if (!e.dead || e.deadT < 0.15) {
+          const eid = lookSpriteId(e.look, [e.look.sprite, e.boss ? 'boss-' + slug(e.name) : null, e.whale ? 'whale' : null]);
+          let es = eid ? sprite(eid, 'west') : null;
+          const ringW = es ? Math.max(16, Math.round(es.w / FX) + 4) : 16;
           if (e.boss || e.ring) { // a glow ring under raid leaders and other special targets
             g.fillStyle = e.ring || 'rgba(242,193,78,0.25)';
-            g.fillRect(ePos.x - 8, FY - 1, 16, 2);
+            g.fillRect(ePos.x - ringW / 2, FY - 1, ringW, 2);
           }
-          outlined((c) => humanoid(c, ePos.x, FY, e.look, { walk: ePos.walking ? t * 3 : 0, flash: e.flash > 0, swing: e.swing || 0, bob: Math.sin(t * 3) > 0.6 ? 1 : 0 }), e.outline || (e.boss ? 'rgba(242,193,78,0.9)' : null));
+          // an attack in progress: e.atk runs 0..1; the blow lands at RELEASE, melee fighters lunge at the hero
+          const style = combatOf(eid, e.look.cls);
+          let lunge = 0;
+          if (e.atk != null) {
+            const frames = eid && SPRITES[eid].attack;
+            if (frames && es) es = frames[Math.min(frames.length - 1, Math.floor(e.atk * frames.length))];
+            if (style.kind === 'melee') lunge = Math.round(Math.sin(Math.min(1, e.atk) * Math.PI) * 8);
+            else if (!frames) lunge = e.atk < 0.6 ? 1 : 0;
+          }
+          if (es) {
+            const x = ePos.x - lunge, fy = FY - (e.atk != null ? 0 : step(0));
+            e.drawH = drawSprite(es, x, fy, { flash: e.flash > 0, glow: e.outline || (e.boss ? 'rgba(242,193,78,0.9)' : null) }).h;
+            if (EVENT_HATS.has(e.look.hat)) spriteHat(es, x, fy, e.look.hat);
+          } else {
+            outlined((c) => humanoid(c, ePos.x, FY, e.look, { walk: ePos.walking ? t * 3 : 0, flash: e.flash > 0, swing: e.swing || 0, bob: Math.sin(t * 3) > 0.6 ? 1 : 0 }), e.outline || (e.boss ? 'rgba(242,193,78,0.9)' : null));
+            e.drawH = 0;
+          }
         }
         if (e.dead) e.deadT += dt;
         e.flash = Math.max(0, (e.flash || 0) - dt);
         e.swing = Math.max(0, (e.swing || 0) - dt * 3);
-        if (!e.dead && !ePos.walking && Math.random() < dt * 0.5) e.swing = 1;
+        // adventurers attack the hero every couple of seconds (bosses more often); raids just posture
+        if (e.atk != null) {
+          const eid = !e.raid && lookSpriteId(e.look, [e.look.sprite, e.boss ? 'boss-' + slug(e.name) : null, e.whale ? 'whale' : null]);
+          const frames = eid && SPRITES[eid].attack;
+          e.atk += dt / (frames ? Math.max(0.45, frames.length / 12) : 0.45);
+          const release = frames && STRIKE_FRAME[eid] != null ? (STRIKE_FRAME[eid] + 0.3) / frames.length : RELEASE;
+          if (!e.fired && e.atk >= release) { e.fired = true; if (!e.dead) enemyStrike(e, ePos, combatOf(eid, e.look.cls)); }
+          if (e.atk >= 1 || e.dead) e.atk = null;
+        } else if (!e.raid && !e.dead && !ePos.walking && Math.random() < dt * (e.boss ? 0.8 : 0.45)) { e.atk = 0; e.fired = false; e.swing = 1; }
       }
 
-      // projectiles from the village
+      drawFxs(dt, 'front');
+      drawBolts(dt);
+
+      // projectiles from the village; some units' shots land with an impact effect
       for (let k = shots.length - 1; k >= 0; k--) {
         const s2 = shots[k];
         s2.p += dt * 2.2;
+        if (s2.p >= 1 && ePos && !e.dead && SHOT_FX[s2.i] && fxs.length < 8 && Math.random() < 0.6) playFx(SHOT_FX[s2.i], ePos.x, FY);
         if (s2.p >= 1 || !ePos) { shots.splice(k, 1); continue; }
         const tx = ePos.x, ty = FY - 7;
         const x = s2.x + (tx - s2.x) * s2.p, y = s2.y + (ty - s2.y) * s2.p - Math.sin(s2.p * Math.PI) * s2.arc;
@@ -835,7 +1198,7 @@
             const y = Math.floor(Math.random() * H), w = 6 + Math.random() * W * 0.4, x = Math.random() * (W - w);
             g.fillStyle = Math.random() < 0.5 ? 'rgba(255,79,139,0.55)' : 'rgba(127,224,245,0.5)';
             g.fillRect(Math.round(x), y, Math.round(w), 1);
-            if (view.glitch >= 2 && Math.random() < 0.4) g.drawImage(low, 0, y, W, 2, Math.round((Math.random() - 0.5) * 6), y, W, 2);
+            if (view.glitch >= 2 && Math.random() < 0.4) { const sx = Math.round((Math.random() - 0.5) * 6); fine(g, () => g.drawImage(low, 0, y * FX, W * FX, 2 * FX, sx * FX, y * FX, W * FX, 2 * FX)); }
           }
         }
       }
@@ -846,21 +1209,14 @@
       shake = Math.max(0, shake - dt * 30);
       const sx2 = shake ? (Math.random() - 0.5) * shake : 0, sy2 = shake ? (Math.random() - 0.5) * shake : 0;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(low, 0, 0, W, H, Math.round(sx2 * DPR), Math.round(sy2 * DPR), W * SCALE * DPR, H * SCALE * DPR);
-      if (heroTop.hires) {
-        // whole-number scale that lands closest to the form's procedural height
-        const hs2 = heroTop.hires, k = Math.max(1, Math.round(SCALE * look.h / hs2.h)) * DPR;
-        const dw = Math.round(hs2.w * k), dh = Math.round(hs2.h * k);
-        const dx = Math.round((heroX * SCALE + sx2) * DPR - dw / 2), dy = Math.round(((FY - heroBob) * SCALE + sy2) * DPR - dh);
-        ctx.drawImage(hs2.img, hs2.x, hs2.y, hs2.w, hs2.h, dx, dy, dw, dh);
-      }
+      ctx.drawImage(low, 0, 0, W * FX, H * FX, Math.round(sx2 * DPR), Math.round(sy2 * DPR), W * SCALE * DPR, H * SCALE * DPR);
       if (flashT > 0) { ctx.fillStyle = `rgba(255,79,139,${flashT * 0.5})`; ctx.fillRect(0, 0, canvas.width, canvas.height); flashT = Math.max(0, flashT - dt * 1.5); }
 
       // ---- crisp text layer
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
       const S = SCALE;
       if (e && ePos && !(e.dead && e.deadT > 0.15)) {
-        const ey = (FY - (e.raid ? 20 : e.look.h) - 3) * S;
+        const ey = (FY - (e.drawH || (e.raid ? 20 : e.look.h)) - 3) * S;
         const big = e.boss || e.raid || e.special;
         const top = Math.max(big ? 36 : 22, ey - 6);
         ctx.textAlign = 'center';
@@ -917,7 +1273,9 @@
       if (rankLabel[i]) { // the new rank's name floats up from the force
         floats.push({ x: x * SCALE, y: (top - 3) * SCALE, text: rankLabel[i], t: 0, life: 1.8, rise: 34, size: 16, c: '#F2C14E' });
         rankLabel[i] = null;
+        if (playFx('rankup', x, fy)) rankFx[i] = 0; // the VFX replaces the procedural column of light
       }
+      if (!rankFx[i]) return;
       const a = Math.min(1, left);
       g.fillStyle = `rgba(242,193,78,${(0.4 * a).toFixed(2)})`;
       g.fillRect(x - 5, top - 8, 11, fy - top + 8);
@@ -933,26 +1291,29 @@
         6: ['#8A8E96', 2, 20], 7: ['#C8CED6', 2, 2], 8: ['#3A3A40', 1, 0], 9: ['#FF4F8B', 2, 0], 10: ['#B6FF8A', 2, 4], 11: ['#3DDC84', 3, 0],
       }[i];
       if (!spec || shots.length > 30) return;
-      shots.push({ x, y, p: 0, c: r >= 5 ? '#7FE0F5' : spec[0], w: spec[1] + (r >= 3 ? 1 : 0), arc: spec[2] });
+      shots.push({ i, x, y, p: 0, c: r >= 5 ? '#7FE0F5' : spec[0], w: spec[1] + (r >= 3 ? 1 : 0), arc: spec[2] });
     }
 
     function enemyScreen() {
       const e = st.enemy;
-      if (!e) return { x: CW * 0.76, y: CH * 0.6 };
+      if (!e) return { x: SX * SCALE, y: CH * 0.6 };
       const p = enemyPos(e, performance.now());
-      return { x: p.x * SCALE, y: (FY - (e.raid ? 14 : e.look.h * 0.6)) * SCALE };
+      return { x: p.x * SCALE, y: (FY - (e.drawH ? e.drawH * 0.6 : (e.raid ? 14 : e.look.h * 0.6))) * SCALE };
     }
 
     return {
       resize,
       get enemy() { return st.enemy; },
-      setEnemy(e) { st.enemy = e; },
+      setEnemy(e) { st.enemy = e; st.arriveFx = null; },
+      // The next hit plays no hit/crit VFX (a trick that brings its own effect, like Gank).
+      skipNextHitFx() { skipHitFx = true; },
       enemyArrived(now) { const e = st.enemy; return e && !e.dead && now - e.born >= e.walk * 1000; },
-      heroAttack() { heroSwing = 1; heroLunge = 1; },
+      // the swing's effect lands on the form's strike frame; a tap during a swing lands the pending one at once
+      heroAttack() { if (heroPending) heroStrike(); heroPending = true; heroSwing = 1; heroLunge = 1; heroAnim = 0; },
       hit(amount, crit, text, quiet) {
         const e = st.enemy; if (!e) return;
         if (quiet && !crit) { quietN++; if (quietN % 3) return; }
-        else e.flash = 0.08;
+        else { e.flash = 0.08; if (skipHitFx) skipHitFx = false; else playFx(crit ? 'crit' : 'hit', enemyPos(e, performance.now()).x, FY); }
         const p = enemyScreen();
         if (floats.length > 24) floats.shift();
         floats.push({ x: p.x + (Math.random() - 0.5) * 30, y: p.y - 10, text, t: 0, life: crit ? 1.1 : 0.8, rise: crit ? 46 : 34, size: crit ? 19 : 14, c: crit ? '#FF4F8B' : '#EFE6D2' });
@@ -967,13 +1328,27 @@
         e.dead = true; e.deadT = 0;
         const p = enemyPos(e, performance.now());
         const cols = e.raid ? ['#E0533D', '#FF8A6A', '#EFE6D2'] : [e.look.robe || e.look.shirt || '#9A3B32', e.look.skin, '#EFE6D2', '#7FE0F5'];
-        if (!reduce) for (let k = 0; k < (e.boss || e.raid ? 50 : 22); k++) {
-          parts.push({ x: p.x + (Math.random() - 0.5) * (e.raid ? 24 : 6), y: FY - Math.random() * (e.raid ? 16 : e.look.h), vx: (Math.random() - 0.5) * 8, vy: -10 - Math.random() * 18, g: -4, t: 0, life: 0.6 + Math.random() * 0.6, c: cols[k % cols.length] });
+        // the despawn VFX (one per raid member) replaces the procedural dissolve; loot coins pop out too
+        let poof = false;
+        const big = (e.boss || e.special) && VFX['kill-boss'] ? 'kill-boss' : 'kill';
+        for (const dx of e.raid ? [-12, 0, 12] : [0]) poof = playFx(big, p.x + dx, FY) || poof;
+        playFx('coins', p.x, FY);
+        if (!reduce && !poof) for (let k = 0; k < (e.boss || e.raid ? 50 : 22); k++) {
+          parts.push({ x: p.x + (Math.random() - 0.5) * (e.raid ? 24 : 6), y: FY - Math.random() * (e.drawH || (e.raid ? 16 : e.look.h)), vx: (Math.random() - 0.5) * 8, vy: -10 - Math.random() * 18, g: -4, t: 0, life: 0.6 + Math.random() * 0.6, c: cols[k % cols.length] });
         }
         const s2 = enemyScreen();
         for (let k = 0; k < Math.min(12, n || 4); k++) coins.push({ x: s2.x, y: s2.y, t: -k * 0.05, dx: (Math.random() - 0.5) * 60 });
       },
-      corruptFlash() { flashT = 1; shake = 6; },
+      corruptFlash() { flashT = 1; shake = 6; playFx('corrupt', heroXNow, FY); },
+      // Play a named VFX at the hero, the current enemy, where enemies stand, or the middle of the field.
+      fx(name, where) {
+        const e = st.enemy;
+        if (where === 'arrive') { st.arriveFx = name; return true; } // plays when the current enemy finishes walking in
+        const x = where === 'hero' ? heroXNow
+          : where === 'enemy' && e ? enemyPos(e, performance.now()).x
+          : where === 'center' ? Math.round((HX + SX) / 2) : SX;
+        return playFx(name, x, FY);
+      },
       rankUp(i, label) { rankFx[i] = reduce ? 0.01 : 2; rankLabel[i] = label || 'Rank up!'; },
       frame,
     };
@@ -1426,8 +1801,21 @@
   // Portrait of a form, cropped to head and shoulders, as a data URL (cached).
   const portraitCache = {};
   function portrait(form, size, unknown) {
-    const key = form.id + size + (unknown ? 'u' : '');
+    // a PixelLab form gets a head-and-shoulders crop of its front-facing (south) sprite
+    const ps = sprite(form.id, 'south');
+    const key = form.id + size + (unknown ? 'u' : '') + (ps ? 's' : '');
     if (portraitCache[key]) return portraitCache[key];
+    if (ps) {
+      const side = Math.min(ps.h, Math.max(ps.w + 2, Math.round(ps.h * 0.6)));
+      const sx = Math.round(ps.x + ps.hx - side / 2), sy = ps.y - 1;
+      const out = document.createElement('canvas');
+      out.width = size; out.height = size;
+      const og = out.getContext('2d');
+      og.imageSmoothingEnabled = false;
+      og.drawImage(ps.img, sx, sy, side, side, 0, 0, size, size);
+      if (unknown) { og.globalCompositeOperation = 'source-in'; og.fillStyle = 'rgba(239,230,210,0.28)'; og.fillRect(0, 0, size, size); }
+      return (portraitCache[key] = out.toDataURL());
+    }
     const c = document.createElement('canvas');
     const N = 16;
     c.width = N; c.height = N;
@@ -1471,8 +1859,19 @@
   }
   function unitIcon(i, size, r) {
     r = r || 0;
-    const key = i + ':' + size + ':' + r;
+    // a PixelLab unit fills a square frame, feet near the bottom
+    const us = unitSprite(i, r);
+    const key = i + ':' + size + ':' + r + (us ? ':s' + us.w + 'x' + us.h : '');
     if (unitCache[key]) return unitCache[key];
+    if (us) {
+      const side = Math.max(us.w, us.h) + 4;
+      const out = document.createElement('canvas');
+      out.width = size; out.height = size;
+      const og = out.getContext('2d');
+      og.imageSmoothingEnabled = false;
+      og.drawImage(us.img, Math.round(us.x + us.w / 2 - side / 2), us.y + us.h + 2 - side, side, side, 0, 0, size, size);
+      return (unitCache[key] = out.toDataURL());
+    }
     const f = unitFrame(i);
     const c = document.createElement('canvas');
     c.width = ICON_N; c.height = ICON_N;
@@ -1486,5 +1885,5 @@
     return (unitCache[key] = out.toDataURL());
   }
 
-  root.GHArt = { createScene, createTownView, humanoid, adventurerLook, formLook, portrait, unitIcon, resIcon, jobIcon, bldIcon, mulberry };
+  root.GHArt = { createScene, createTownView, humanoid, adventurerLook, formLook, portrait, unitIcon, resIcon, jobIcon, bldIcon, mulberry, onArt: (f) => artListeners.push(f), sprites: SPRITES, fx: VFX }; // sprites/fx exposed for tests
 })(window);

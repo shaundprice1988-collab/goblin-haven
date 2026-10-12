@@ -1,0 +1,94 @@
+{
+ "app": "PixelLab VFX Creator",
+ "name": "Goblin Haven - cast-arcane",
+ "fps": 16,
+ "frame_ms": 63,
+ "frames": 6,
+ "loop": false,
+ "canvas": {
+  "w": 31,
+  "h": 31
+ },
+ "anchor": {
+  "kind": "origin",
+  "x": 15,
+  "y": 15
+ },
+ "clips": [
+  {
+   "name": "whole",
+   "title": "the whole effect, no sprite",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 5,
+   "frame": {
+    "w": 27,
+    "h": 20
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 5,
+     "columns": 3,
+     "rows": 2
+    }
+   ],
+   "offset": {
+    "x": -12,
+    "y": -10
+   }
+  },
+  {
+   "name": "part-rest",
+   "title": "the layers in no part",
+   "depth": "front",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 5,
+   "frame": {
+    "w": 27,
+    "h": 12
+   },
+   "sheets": [
+    {
+     "file": "part-rest.png",
+     "first_frame": 0,
+     "frames": 5,
+     "columns": 3,
+     "rows": 2
+    }
+   ],
+   "offset": {
+    "x": -12,
+    "y": -6
+   }
+  },
+  {
+   "name": "part-ring",
+   "title": "the ring part",
+   "depth": "front",
+   "loop": false,
+   "start_frame": 1,
+   "frames": 4,
+   "frame": {
+    "w": 19,
+    "h": 20
+   },
+   "sheets": [
+    {
+     "file": "part-ring.png",
+     "first_frame": 0,
+     "frames": 4,
+     "columns": 2,
+     "rows": 2
+    }
+   ],
+   "offset": {
+    "x": -9,
+    "y": -10
+   }
+  }
+ ]
+}

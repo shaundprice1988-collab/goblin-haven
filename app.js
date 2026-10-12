@@ -177,6 +177,7 @@
     GH.emit('bossSpawn', enemy);
     GH.emit('enemySpawn', enemy);
     scene.setEnemy(enemy);
+    scene.fx(R.bossCls === 'gm' ? 'gmin' : 'bossin', 'arrive');
     const t = Math.max(5, Math.round((D.bossTime + (enemy.extraTime || 0)) * (enemy.timeM || 1)));
     fight = { kind: 'boss', end: now + 900 + t * 1000, dur: t };
     const lines = BOSS_LINES[r] || ['Patch incoming.', 'Rollback… failed…'];
@@ -271,6 +272,7 @@
     earn(g);
     gainXp(GH.xpAt(s) * K.BOSS_XP * D.xpM);
     scene.float('+' + fmt(g), '#F2C14E', true);
+    scene.fx('conquer', 'center');
     const lines = BOSS_LINES[r] || ['Patch incoming.', 'Rollback… failed…'];
     chat(R.boss, lines[1], R.bossCls === 'gm' ? 'gm' : (R.npc ? 'npc' : 'lead'));
     const first = S.conquered < r + 1;
@@ -330,6 +332,7 @@
     S.codex[id] = 1;
     derive();
     scene.corruptFlash();
+    scene.fx('evolve', 'hero');
     buzz(60);
     sys(`Evolution complete. You are now ${/^[AEIOU]/.test(f.name) ? 'an' : 'a'} ${f.name}.`, 'glitch');
     if (isNew) sys(`Form remembered. Each remembered form makes everything 10% stronger, even after a rollback.`, '', 'codex');
@@ -508,6 +511,8 @@
   function setClass(el, cls, on) { if (el.classList.contains(cls) !== on) el.classList.toggle(cls, on); }
 
   function updatePortrait() { $('#portrait').src = Art.portrait(FORM[S.form], 88); }
+  // PixelLab sprites load after the first render: redraw the cached portrait and unit icons when they arrive
+  if (Art.onArt) Art.onArt(() => { updatePortrait(); unitRows.forEach((r) => { r.rank = -1; }); render(true); });
 
   // corrupted name: a letter glitches now and then
   let glitchAt = 0, glitchIdx = -1;

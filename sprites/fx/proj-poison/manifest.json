@@ -1,0 +1,96 @@
+{
+ "app": "PixelLab VFX Creator",
+ "name": "Goblin Haven - proj-poison",
+ "fps": 16,
+ "frame_ms": 63,
+ "frames": 8,
+ "loop": true,
+ "canvas": {
+  "w": 28,
+  "h": 16
+ },
+ "anchor": {
+  "kind": "origin",
+  "x": 18,
+  "y": 7
+ },
+ "clips": [
+  {
+   "name": "whole",
+   "title": "the whole effect, no sprite",
+   "depth": "both",
+   "loop": true,
+   "start_frame": 0,
+   "frames": 8,
+   "frame": {
+    "w": 21,
+    "h": 14
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 8,
+     "columns": 3,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -15,
+    "y": -6
+   }
+  },
+  {
+   "name": "part-magic_orb",
+   "title": "the magic orb part",
+   "role": "projectile",
+   "part": "magic_orb",
+   "depth": "front",
+   "loop": true,
+   "start_frame": 0,
+   "frames": 8,
+   "frame": {
+    "w": 20,
+    "h": 12
+   },
+   "sheets": [
+    {
+     "file": "part-magic_orb.png",
+     "first_frame": 0,
+     "frames": 8,
+     "columns": 3,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -14,
+    "y": -6
+   }
+  },
+  {
+   "name": "part-rest",
+   "title": "the layers in no part",
+   "depth": "both",
+   "loop": true,
+   "start_frame": 0,
+   "frames": 8,
+   "frame": {
+    "w": 19,
+    "h": 11
+   },
+   "sheets": [
+    {
+     "file": "part-rest.png",
+     "first_frame": 0,
+     "frames": 8,
+     "columns": 3,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -15,
+    "y": -3
+   }
+  }
+ ]
+}

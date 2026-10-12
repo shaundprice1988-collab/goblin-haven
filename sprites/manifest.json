@@ -1,3 +1,1131 @@
 {
-  "goblin": { "east": "sprites/goblin/east.png", "south": "sprites/goblin/south.png" }
+ "abominable": {
+  "attack": [
+   "sprites/abominable/attack-0.png",
+   "sprites/abominable/attack-1.png",
+   "sprites/abominable/attack-2.png",
+   "sprites/abominable/attack-3.png",
+   "sprites/abominable/attack-4.png",
+   "sprites/abominable/attack-5.png",
+   "sprites/abominable/attack-6.png"
+  ],
+  "east": "sprites/abominable/east.png",
+  "south": "sprites/abominable/south.png"
+ },
+ "adv-cleric-0": {
+  "attack": [
+   "sprites/adv-cleric-0/attack-0.png",
+   "sprites/adv-cleric-0/attack-1.png",
+   "sprites/adv-cleric-0/attack-2.png",
+   "sprites/adv-cleric-0/attack-3.png",
+   "sprites/adv-cleric-0/attack-4.png",
+   "sprites/adv-cleric-0/attack-5.png",
+   "sprites/adv-cleric-0/attack-6.png"
+  ],
+  "south": "sprites/adv-cleric-0/south.png",
+  "west": "sprites/adv-cleric-0/west.png"
+ },
+ "adv-cleric-1": {
+  "attack": [
+   "sprites/adv-cleric-1/attack-0.png",
+   "sprites/adv-cleric-1/attack-1.png",
+   "sprites/adv-cleric-1/attack-2.png",
+   "sprites/adv-cleric-1/attack-3.png",
+   "sprites/adv-cleric-1/attack-4.png",
+   "sprites/adv-cleric-1/attack-5.png",
+   "sprites/adv-cleric-1/attack-6.png"
+  ],
+  "south": "sprites/adv-cleric-1/south.png",
+  "west": "sprites/adv-cleric-1/west.png"
+ },
+ "adv-cleric-2": {
+  "attack": [
+   "sprites/adv-cleric-2/attack-0.png",
+   "sprites/adv-cleric-2/attack-1.png",
+   "sprites/adv-cleric-2/attack-2.png",
+   "sprites/adv-cleric-2/attack-3.png",
+   "sprites/adv-cleric-2/attack-4.png",
+   "sprites/adv-cleric-2/attack-5.png",
+   "sprites/adv-cleric-2/attack-6.png"
+  ],
+  "south": "sprites/adv-cleric-2/south.png",
+  "west": "sprites/adv-cleric-2/west.png"
+ },
+ "adv-gm-0": {
+  "attack": [
+   "sprites/adv-gm-0/attack-0.png",
+   "sprites/adv-gm-0/attack-1.png",
+   "sprites/adv-gm-0/attack-2.png",
+   "sprites/adv-gm-0/attack-3.png",
+   "sprites/adv-gm-0/attack-4.png",
+   "sprites/adv-gm-0/attack-5.png",
+   "sprites/adv-gm-0/attack-6.png"
+  ],
+  "south": "sprites/adv-gm-0/south.png",
+  "west": "sprites/adv-gm-0/west.png"
+ },
+ "adv-mage-0": {
+  "attack": [
+   "sprites/adv-mage-0/attack-0.png",
+   "sprites/adv-mage-0/attack-1.png",
+   "sprites/adv-mage-0/attack-2.png",
+   "sprites/adv-mage-0/attack-3.png",
+   "sprites/adv-mage-0/attack-4.png",
+   "sprites/adv-mage-0/attack-5.png",
+   "sprites/adv-mage-0/attack-6.png"
+  ],
+  "south": "sprites/adv-mage-0/south.png",
+  "west": "sprites/adv-mage-0/west.png"
+ },
+ "adv-mage-1": {
+  "attack": [
+   "sprites/adv-mage-1/attack-0.png",
+   "sprites/adv-mage-1/attack-1.png",
+   "sprites/adv-mage-1/attack-2.png",
+   "sprites/adv-mage-1/attack-3.png",
+   "sprites/adv-mage-1/attack-4.png",
+   "sprites/adv-mage-1/attack-5.png",
+   "sprites/adv-mage-1/attack-6.png"
+  ],
+  "south": "sprites/adv-mage-1/south.png",
+  "west": "sprites/adv-mage-1/west.png"
+ },
+ "adv-mage-2": {
+  "attack": [
+   "sprites/adv-mage-2/attack-0.png",
+   "sprites/adv-mage-2/attack-1.png",
+   "sprites/adv-mage-2/attack-2.png",
+   "sprites/adv-mage-2/attack-3.png",
+   "sprites/adv-mage-2/attack-4.png",
+   "sprites/adv-mage-2/attack-5.png",
+   "sprites/adv-mage-2/attack-6.png"
+  ],
+  "south": "sprites/adv-mage-2/south.png",
+  "west": "sprites/adv-mage-2/west.png"
+ },
+ "adv-ranger-0": {
+  "attack": [
+   "sprites/adv-ranger-0/attack-0.png",
+   "sprites/adv-ranger-0/attack-1.png",
+   "sprites/adv-ranger-0/attack-2.png",
+   "sprites/adv-ranger-0/attack-3.png",
+   "sprites/adv-ranger-0/attack-4.png",
+   "sprites/adv-ranger-0/attack-5.png",
+   "sprites/adv-ranger-0/attack-6.png"
+  ],
+  "south": "sprites/adv-ranger-0/south.png",
+  "west": "sprites/adv-ranger-0/west.png"
+ },
+ "adv-ranger-1": {
+  "attack": [
+   "sprites/adv-ranger-1/attack-0.png",
+   "sprites/adv-ranger-1/attack-1.png",
+   "sprites/adv-ranger-1/attack-2.png",
+   "sprites/adv-ranger-1/attack-3.png",
+   "sprites/adv-ranger-1/attack-4.png",
+   "sprites/adv-ranger-1/attack-5.png",
+   "sprites/adv-ranger-1/attack-6.png"
+  ],
+  "south": "sprites/adv-ranger-1/south.png",
+  "west": "sprites/adv-ranger-1/west.png"
+ },
+ "adv-ranger-2": {
+  "attack": [
+   "sprites/adv-ranger-2/attack-0.png",
+   "sprites/adv-ranger-2/attack-1.png",
+   "sprites/adv-ranger-2/attack-2.png",
+   "sprites/adv-ranger-2/attack-3.png",
+   "sprites/adv-ranger-2/attack-4.png",
+   "sprites/adv-ranger-2/attack-5.png",
+   "sprites/adv-ranger-2/attack-6.png"
+  ],
+  "south": "sprites/adv-ranger-2/south.png",
+  "west": "sprites/adv-ranger-2/west.png"
+ },
+ "adv-rogue-0": {
+  "attack": [
+   "sprites/adv-rogue-0/attack-0.png",
+   "sprites/adv-rogue-0/attack-1.png",
+   "sprites/adv-rogue-0/attack-2.png",
+   "sprites/adv-rogue-0/attack-3.png",
+   "sprites/adv-rogue-0/attack-4.png",
+   "sprites/adv-rogue-0/attack-5.png",
+   "sprites/adv-rogue-0/attack-6.png"
+  ],
+  "south": "sprites/adv-rogue-0/south.png",
+  "west": "sprites/adv-rogue-0/west.png"
+ },
+ "adv-rogue-1": {
+  "attack": [
+   "sprites/adv-rogue-1/attack-0.png",
+   "sprites/adv-rogue-1/attack-1.png",
+   "sprites/adv-rogue-1/attack-2.png",
+   "sprites/adv-rogue-1/attack-3.png",
+   "sprites/adv-rogue-1/attack-4.png",
+   "sprites/adv-rogue-1/attack-5.png",
+   "sprites/adv-rogue-1/attack-6.png"
+  ],
+  "south": "sprites/adv-rogue-1/south.png",
+  "west": "sprites/adv-rogue-1/west.png"
+ },
+ "adv-rogue-2": {
+  "attack": [
+   "sprites/adv-rogue-2/attack-0.png",
+   "sprites/adv-rogue-2/attack-1.png",
+   "sprites/adv-rogue-2/attack-2.png",
+   "sprites/adv-rogue-2/attack-3.png",
+   "sprites/adv-rogue-2/attack-4.png",
+   "sprites/adv-rogue-2/attack-5.png",
+   "sprites/adv-rogue-2/attack-6.png"
+  ],
+  "south": "sprites/adv-rogue-2/south.png",
+  "west": "sprites/adv-rogue-2/west.png"
+ },
+ "adv-warrior-0": {
+  "attack": [
+   "sprites/adv-warrior-0/attack-0.png",
+   "sprites/adv-warrior-0/attack-1.png",
+   "sprites/adv-warrior-0/attack-2.png",
+   "sprites/adv-warrior-0/attack-3.png",
+   "sprites/adv-warrior-0/attack-4.png",
+   "sprites/adv-warrior-0/attack-5.png",
+   "sprites/adv-warrior-0/attack-6.png"
+  ],
+  "south": "sprites/adv-warrior-0/south.png",
+  "west": "sprites/adv-warrior-0/west.png"
+ },
+ "adv-warrior-1": {
+  "attack": [
+   "sprites/adv-warrior-1/attack-0.png",
+   "sprites/adv-warrior-1/attack-1.png",
+   "sprites/adv-warrior-1/attack-2.png",
+   "sprites/adv-warrior-1/attack-3.png",
+   "sprites/adv-warrior-1/attack-4.png",
+   "sprites/adv-warrior-1/attack-5.png",
+   "sprites/adv-warrior-1/attack-6.png"
+  ],
+  "south": "sprites/adv-warrior-1/south.png",
+  "west": "sprites/adv-warrior-1/west.png"
+ },
+ "adv-warrior-2": {
+  "attack": [
+   "sprites/adv-warrior-2/attack-0.png",
+   "sprites/adv-warrior-2/attack-1.png",
+   "sprites/adv-warrior-2/attack-2.png",
+   "sprites/adv-warrior-2/attack-3.png",
+   "sprites/adv-warrior-2/attack-4.png",
+   "sprites/adv-warrior-2/attack-5.png",
+   "sprites/adv-warrior-2/attack-6.png"
+  ],
+  "south": "sprites/adv-warrior-2/south.png",
+  "west": "sprites/adv-warrior-2/west.png"
+ },
+ "barghest": {
+  "attack": [
+   "sprites/barghest/attack-0.png",
+   "sprites/barghest/attack-1.png",
+   "sprites/barghest/attack-2.png",
+   "sprites/barghest/attack-3.png",
+   "sprites/barghest/attack-4.png",
+   "sprites/barghest/attack-5.png",
+   "sprites/barghest/attack-6.png"
+  ],
+  "east": "sprites/barghest/east.png",
+  "south": "sprites/barghest/south.png"
+ },
+ "bg-0-wide": {
+  "bg": "sprites/bg/0-wide.png",
+  "horizon": 172
+ },
+ "bg-0": {
+  "bg": "sprites/bg/0.png",
+  "horizon": 184
+ },
+ "bg-1-wide": {
+  "bg": "sprites/bg/1-wide.png",
+  "horizon": 186
+ },
+ "bg-1": {
+  "bg": "sprites/bg/1.png",
+  "horizon": 186
+ },
+ "bg-2-wide": {
+  "bg": "sprites/bg/2-wide.png",
+  "horizon": 177
+ },
+ "bg-2": {
+  "bg": "sprites/bg/2.png",
+  "horizon": 177
+ },
+ "bg-3-wide": {
+  "bg": "sprites/bg/3-wide.png",
+  "horizon": 178
+ },
+ "bg-3": {
+  "bg": "sprites/bg/3.png",
+  "horizon": 177
+ },
+ "bg-4-wide": {
+  "bg": "sprites/bg/4-wide.png",
+  "horizon": 176
+ },
+ "bg-4": {
+  "bg": "sprites/bg/4.png",
+  "horizon": 190
+ },
+ "bg-5-wide": {
+  "bg": "sprites/bg/5-wide.png",
+  "horizon": 176
+ },
+ "bg-5": {
+  "bg": "sprites/bg/5.png",
+  "horizon": 184
+ },
+ "bg-6-wide": {
+  "bg": "sprites/bg/6-wide.png",
+  "horizon": 188
+ },
+ "bg-6": {
+  "bg": "sprites/bg/6.png",
+  "horizon": 172
+ },
+ "bg-7-wide": {
+  "bg": "sprites/bg/7-wide.png",
+  "horizon": 200
+ },
+ "bg-7": {
+  "bg": "sprites/bg/7.png",
+  "horizon": 152
+ },
+ "bg-8-wide": {
+  "bg": "sprites/bg/8-wide.png",
+  "horizon": 182
+ },
+ "bg-8": {
+  "bg": "sprites/bg/8.png",
+  "horizon": 186
+ },
+ "bg-9-wide": {
+  "bg": "sprites/bg/9-wide.png",
+  "horizon": 186
+ },
+ "bg-9": {
+  "bg": "sprites/bg/9.png",
+  "horizon": 183
+ },
+ "bg-10-wide": {
+  "bg": "sprites/bg/10-wide.png",
+  "horizon": 181
+ },
+ "bg-10": {
+  "bg": "sprites/bg/10.png",
+  "horizon": 186
+ },
+ "bg-11-wide": {
+  "bg": "sprites/bg/11-wide.png",
+  "horizon": 200
+ },
+ "bg-11": {
+  "bg": "sprites/bg/11.png",
+  "horizon": 188
+ },
+ "bg-shard-wide": {
+  "bg": "sprites/bg/shard-wide.png",
+  "horizon": 194
+ },
+ "bg-shard": {
+  "bg": "sprites/bg/shard.png",
+  "horizon": 196
+ },
+ "blade": {
+  "attack": [
+   "sprites/blade/attack-0.png",
+   "sprites/blade/attack-1.png",
+   "sprites/blade/attack-2.png",
+   "sprites/blade/attack-3.png",
+   "sprites/blade/attack-4.png",
+   "sprites/blade/attack-5.png",
+   "sprites/blade/attack-6.png"
+  ],
+  "east": "sprites/blade/east.png",
+  "south": "sprites/blade/south.png"
+ },
+ "boss": {
+  "attack": [
+   "sprites/boss/attack-0.png",
+   "sprites/boss/attack-1.png",
+   "sprites/boss/attack-2.png",
+   "sprites/boss/attack-3.png",
+   "sprites/boss/attack-4.png",
+   "sprites/boss/attack-5.png",
+   "sprites/boss/attack-6.png"
+  ],
+  "east": "sprites/boss/east.png",
+  "south": "sprites/boss/south.png"
+ },
+ "boss-brrrian": {
+  "attack": [
+   "sprites/boss-brrrian/attack-0.png",
+   "sprites/boss-brrrian/attack-1.png",
+   "sprites/boss-brrrian/attack-2.png",
+   "sprites/boss-brrrian/attack-3.png",
+   "sprites/boss-brrrian/attack-4.png",
+   "sprites/boss-brrrian/attack-5.png",
+   "sprites/boss-brrrian/attack-6.png"
+  ],
+  "south": "sprites/boss-brrrian/south.png",
+  "west": "sprites/boss-brrrian/west.png"
+ },
+ "boss-captainharrow": {
+  "attack": [
+   "sprites/boss-captainharrow/attack-0.png",
+   "sprites/boss-captainharrow/attack-1.png",
+   "sprites/boss-captainharrow/attack-2.png",
+   "sprites/boss-captainharrow/attack-3.png",
+   "sprites/boss-captainharrow/attack-4.png",
+   "sprites/boss-captainharrow/attack-5.png",
+   "sprites/boss-captainharrow/attack-6.png"
+  ],
+  "south": "sprites/boss-captainharrow/south.png",
+  "west": "sprites/boss-captainharrow/west.png"
+ },
+ "boss-gmaldric": {
+  "attack": [
+   "sprites/boss-gmaldric/attack-0.png",
+   "sprites/boss-gmaldric/attack-1.png",
+   "sprites/boss-gmaldric/attack-2.png",
+   "sprites/boss-gmaldric/attack-3.png",
+   "sprites/boss-gmaldric/attack-4.png",
+   "sprites/boss-gmaldric/attack-5.png",
+   "sprites/boss-gmaldric/attack-6.png"
+  ],
+  "south": "sprites/boss-gmaldric/south.png",
+  "west": "sprites/boss-gmaldric/west.png"
+ },
+ "boss-gobbofarmer99": {
+  "attack": [
+   "sprites/boss-gobbofarmer99/attack-0.png",
+   "sprites/boss-gobbofarmer99/attack-1.png",
+   "sprites/boss-gobbofarmer99/attack-2.png",
+   "sprites/boss-gobbofarmer99/attack-3.png",
+   "sprites/boss-gobbofarmer99/attack-4.png",
+   "sprites/boss-gobbofarmer99/attack-5.png",
+   "sprites/boss-gobbofarmer99/attack-6.png"
+  ],
+  "south": "sprites/boss-gobbofarmer99/south.png",
+  "west": "sprites/boss-gobbofarmer99/west.png"
+ },
+ "boss-kingofkingsreach": {
+  "attack": [
+   "sprites/boss-kingofkingsreach/attack-0.png",
+   "sprites/boss-kingofkingsreach/attack-1.png",
+   "sprites/boss-kingofkingsreach/attack-2.png",
+   "sprites/boss-kingofkingsreach/attack-3.png",
+   "sprites/boss-kingofkingsreach/attack-4.png",
+   "sprites/boss-kingofkingsreach/attack-5.png",
+   "sprites/boss-kingofkingsreach/attack-6.png"
+  ],
+  "south": "sprites/boss-kingofkingsreach/south.png",
+  "west": "sprites/boss-kingofkingsreach/west.png"
+ },
+ "boss-lordcastellanvey": {
+  "attack": [
+   "sprites/boss-lordcastellanvey/attack-0.png",
+   "sprites/boss-lordcastellanvey/attack-1.png",
+   "sprites/boss-lordcastellanvey/attack-2.png",
+   "sprites/boss-lordcastellanvey/attack-3.png",
+   "sprites/boss-lordcastellanvey/attack-4.png",
+   "sprites/boss-lordcastellanvey/attack-5.png",
+   "sprites/boss-lordcastellanvey/attack-6.png"
+  ],
+  "south": "sprites/boss-lordcastellanvey/south.png",
+  "west": "sprites/boss-lordcastellanvey/west.png"
+ },
+ "boss-necronate": {
+  "attack": [
+   "sprites/boss-necronate/attack-0.png",
+   "sprites/boss-necronate/attack-1.png",
+   "sprites/boss-necronate/attack-2.png",
+   "sprites/boss-necronate/attack-3.png",
+   "sprites/boss-necronate/attack-4.png",
+   "sprites/boss-necronate/attack-5.png",
+   "sprites/boss-necronate/attack-6.png"
+  ],
+  "south": "sprites/boss-necronate/south.png",
+  "west": "sprites/boss-necronate/west.png"
+ },
+ "boss-pyrequeen": {
+  "attack": [
+   "sprites/boss-pyrequeen/attack-0.png",
+   "sprites/boss-pyrequeen/attack-1.png",
+   "sprites/boss-pyrequeen/attack-2.png",
+   "sprites/boss-pyrequeen/attack-3.png",
+   "sprites/boss-pyrequeen/attack-4.png",
+   "sprites/boss-pyrequeen/attack-5.png",
+   "sprites/boss-pyrequeen/attack-6.png"
+  ],
+  "south": "sprites/boss-pyrequeen/south.png",
+  "west": "sprites/boss-pyrequeen/west.png"
+ },
+ "boss-rangerelowen": {
+  "attack": [
+   "sprites/boss-rangerelowen/attack-0.png",
+   "sprites/boss-rangerelowen/attack-1.png",
+   "sprites/boss-rangerelowen/attack-2.png",
+   "sprites/boss-rangerelowen/attack-3.png",
+   "sprites/boss-rangerelowen/attack-4.png",
+   "sprites/boss-rangerelowen/attack-5.png",
+   "sprites/boss-rangerelowen/attack-6.png"
+  ],
+  "south": "sprites/boss-rangerelowen/south.png",
+  "west": "sprites/boss-rangerelowen/west.png"
+ },
+ "boss-seraphine": {
+  "attack": [
+   "sprites/boss-seraphine/attack-0.png",
+   "sprites/boss-seraphine/attack-1.png",
+   "sprites/boss-seraphine/attack-2.png",
+   "sprites/boss-seraphine/attack-3.png",
+   "sprites/boss-seraphine/attack-4.png",
+   "sprites/boss-seraphine/attack-5.png",
+   "sprites/boss-seraphine/attack-6.png"
+  ],
+  "south": "sprites/boss-seraphine/south.png",
+  "west": "sprites/boss-seraphine/west.png"
+ },
+ "boss-swampdaddy": {
+  "attack": [
+   "sprites/boss-swampdaddy/attack-0.png",
+   "sprites/boss-swampdaddy/attack-1.png",
+   "sprites/boss-swampdaddy/attack-2.png",
+   "sprites/boss-swampdaddy/attack-3.png",
+   "sprites/boss-swampdaddy/attack-4.png",
+   "sprites/boss-swampdaddy/attack-5.png",
+   "sprites/boss-swampdaddy/attack-6.png"
+  ],
+  "south": "sprites/boss-swampdaddy/south.png",
+  "west": "sprites/boss-swampdaddy/west.png"
+ },
+ "boss-valkor": {
+  "attack": [
+   "sprites/boss-valkor/attack-0.png",
+   "sprites/boss-valkor/attack-1.png",
+   "sprites/boss-valkor/attack-2.png",
+   "sprites/boss-valkor/attack-3.png",
+   "sprites/boss-valkor/attack-4.png",
+   "sprites/boss-valkor/attack-5.png",
+   "sprites/boss-valkor/attack-6.png"
+  ],
+  "south": "sprites/boss-valkor/south.png",
+  "west": "sprites/boss-valkor/west.png"
+ },
+ "bugbear": {
+  "attack": [
+   "sprites/bugbear/attack-0.png",
+   "sprites/bugbear/attack-1.png",
+   "sprites/bugbear/attack-2.png",
+   "sprites/bugbear/attack-3.png",
+   "sprites/bugbear/attack-4.png",
+   "sprites/bugbear/attack-5.png",
+   "sprites/bugbear/attack-6.png"
+  ],
+  "east": "sprites/bugbear/east.png",
+  "south": "sprites/bugbear/south.png"
+ },
+ "bugchief": {
+  "attack": [
+   "sprites/bugchief/attack-0.png",
+   "sprites/bugchief/attack-1.png",
+   "sprites/bugchief/attack-2.png",
+   "sprites/bugchief/attack-3.png",
+   "sprites/bugchief/attack-4.png",
+   "sprites/bugchief/attack-5.png",
+   "sprites/bugchief/attack-6.png"
+  ],
+  "east": "sprites/bugchief/east.png",
+  "south": "sprites/bugchief/south.png"
+ },
+ "chainbrute": {
+  "attack": [
+   "sprites/chainbrute/attack-0.png",
+   "sprites/chainbrute/attack-1.png",
+   "sprites/chainbrute/attack-2.png",
+   "sprites/chainbrute/attack-3.png",
+   "sprites/chainbrute/attack-4.png",
+   "sprites/chainbrute/attack-5.png",
+   "sprites/chainbrute/attack-6.png"
+  ],
+  "east": "sprites/chainbrute/east.png",
+  "south": "sprites/chainbrute/south.png"
+ },
+ "claw": {
+  "attack": [
+   "sprites/claw/attack-0.png",
+   "sprites/claw/attack-1.png",
+   "sprites/claw/attack-2.png",
+   "sprites/claw/attack-3.png",
+   "sprites/claw/attack-4.png",
+   "sprites/claw/attack-5.png",
+   "sprites/claw/attack-6.png"
+  ],
+  "east": "sprites/claw/east.png",
+  "south": "sprites/claw/south.png"
+ },
+ "crowd-0": {
+  "east": "sprites/crowd-0/east.png",
+  "south": "sprites/crowd-0/south.png"
+ },
+ "crowd-1": {
+  "east": "sprites/crowd-1/east.png",
+  "south": "sprites/crowd-1/south.png"
+ },
+ "devastator": {
+  "attack": [
+   "sprites/devastator/attack-0.png",
+   "sprites/devastator/attack-1.png",
+   "sprites/devastator/attack-2.png",
+   "sprites/devastator/attack-3.png",
+   "sprites/devastator/attack-4.png",
+   "sprites/devastator/attack-5.png",
+   "sprites/devastator/attack-6.png"
+  ],
+  "east": "sprites/devastator/east.png",
+  "south": "sprites/devastator/south.png"
+ },
+ "diretroll": {
+  "attack": [
+   "sprites/diretroll/attack-0.png",
+   "sprites/diretroll/attack-1.png",
+   "sprites/diretroll/attack-2.png",
+   "sprites/diretroll/attack-3.png",
+   "sprites/diretroll/attack-4.png",
+   "sprites/diretroll/attack-5.png",
+   "sprites/diretroll/attack-6.png"
+  ],
+  "east": "sprites/diretroll/east.png",
+  "south": "sprites/diretroll/south.png"
+ },
+ "eye": {
+  "attack": [
+   "sprites/eye/attack-0.png",
+   "sprites/eye/attack-1.png",
+   "sprites/eye/attack-2.png",
+   "sprites/eye/attack-3.png",
+   "sprites/eye/attack-4.png",
+   "sprites/eye/attack-5.png",
+   "sprites/eye/attack-6.png"
+  ],
+  "east": "sprites/eye/east.png",
+  "south": "sprites/eye/south.png"
+ },
+ "fx-boom": {
+  "pack": "sprites/fx/boom/manifest.json"
+ },
+ "fx-bossin": {
+  "pack": "sprites/fx/bossin/manifest.json"
+ },
+ "fx-campfire": {
+  "pack": "sprites/fx/campfire/manifest.json"
+ },
+ "fx-cast-arcane": {
+  "pack": "sprites/fx/cast-arcane/manifest.json"
+ },
+ "fx-cast-fire": {
+  "pack": "sprites/fx/cast-fire/manifest.json"
+ },
+ "fx-claw": {
+  "pack": "sprites/fx/claw/manifest.json"
+ },
+ "fx-coins": {
+  "pack": "sprites/fx/coins/manifest.json"
+ },
+ "fx-conquer": {
+  "pack": "sprites/fx/conquer/manifest.json"
+ },
+ "fx-corrupt": {
+  "pack": "sprites/fx/corrupt/manifest.json"
+ },
+ "fx-crit": {
+  "pack": "sprites/fx/crit/manifest.json"
+ },
+ "fx-evolve": {
+  "pack": "sprites/fx/evolve/manifest.json"
+ },
+ "fx-gm-bolt": {
+  "pack": "sprites/fx/gm-bolt/manifest.json"
+ },
+ "fx-gmin": {
+  "pack": "sprites/fx/gmin/manifest.json"
+ },
+ "fx-hex": {
+  "pack": "sprites/fx/hex/manifest.json"
+ },
+ "fx-hit": {
+  "pack": "sprites/fx/hit/manifest.json"
+ },
+ "fx-impact-arcane": {
+  "pack": "sprites/fx/impact-arcane/manifest.json"
+ },
+ "fx-impact-arrow": {
+  "pack": "sprites/fx/impact-arrow/manifest.json"
+ },
+ "fx-impact-coin": {
+  "pack": "sprites/fx/impact-coin/manifest.json"
+ },
+ "fx-impact-fire": {
+  "pack": "sprites/fx/impact-fire/manifest.json"
+ },
+ "fx-impact-poison": {
+  "pack": "sprites/fx/impact-poison/manifest.json"
+ },
+ "fx-kill": {
+  "pack": "sprites/fx/kill/manifest.json"
+ },
+ "fx-kill-boss": {
+  "pack": "sprites/fx/kill-boss/manifest.json"
+ },
+ "fx-proj-arcane": {
+  "pack": "sprites/fx/proj-arcane/manifest.json"
+ },
+ "fx-proj-arrow": {
+  "pack": "sprites/fx/proj-arrow/manifest.json"
+ },
+ "fx-proj-coin": {
+  "pack": "sprites/fx/proj-coin/manifest.json"
+ },
+ "fx-proj-fire": {
+  "pack": "sprites/fx/proj-fire/manifest.json"
+ },
+ "fx-proj-poison": {
+  "pack": "sprites/fx/proj-poison/manifest.json"
+ },
+ "fx-rankup": {
+  "pack": "sprites/fx/rankup/manifest.json"
+ },
+ "fx-rock": {
+  "pack": "sprites/fx/rock/manifest.json"
+ },
+ "fx-slash": {
+  "pack": "sprites/fx/slash/manifest.json"
+ },
+ "fx-slash-heavy": {
+  "pack": "sprites/fx/slash-heavy/manifest.json"
+ },
+ "fx-smash": {
+  "pack": "sprites/fx/smash/manifest.json"
+ },
+ "fx-smite": {
+  "pack": "sprites/fx/smite/manifest.json"
+ },
+ "fx-stab": {
+  "pack": "sprites/fx/stab/manifest.json"
+ },
+ "fx-swing": {
+  "pack": "sprites/fx/swing/manifest.json"
+ },
+ "fx-trick-gank": {
+  "pack": "sprites/fx/trick-gank/manifest.json"
+ },
+ "fx-trick-macro": {
+  "pack": "sprites/fx/trick-macro/manifest.json"
+ },
+ "fx-trick-ninja": {
+  "pack": "sprites/fx/trick-ninja/manifest.json"
+ },
+ "fx-trick-zerg": {
+  "pack": "sprites/fx/trick-zerg/manifest.json"
+ },
+ "goblin": {
+  "attack": [
+   "sprites/goblin/attack-0.png",
+   "sprites/goblin/attack-1.png",
+   "sprites/goblin/attack-2.png",
+   "sprites/goblin/attack-3.png",
+   "sprites/goblin/attack-4.png",
+   "sprites/goblin/attack-5.png"
+  ],
+  "east": "sprites/goblin/east.png",
+  "idle": [
+   "sprites/goblin/idle-0.png",
+   "sprites/goblin/idle-1.png",
+   "sprites/goblin/idle-2.png",
+   "sprites/goblin/idle-3.png",
+   "sprites/goblin/idle-4.png",
+   "sprites/goblin/idle-5.png"
+  ],
+  "north": "sprites/goblin/north.png",
+  "south": "sprites/goblin/south.png",
+  "west": "sprites/goblin/west.png"
+ },
+ "hand": {
+  "attack": [
+   "sprites/hand/attack-0.png",
+   "sprites/hand/attack-1.png",
+   "sprites/hand/attack-2.png",
+   "sprites/hand/attack-3.png",
+   "sprites/hand/attack-4.png",
+   "sprites/hand/attack-5.png",
+   "sprites/hand/attack-6.png"
+  ],
+  "east": "sprites/hand/east.png",
+  "south": "sprites/hand/south.png"
+ },
+ "hobcaptain": {
+  "attack": [
+   "sprites/hobcaptain/attack-0.png",
+   "sprites/hobcaptain/attack-1.png",
+   "sprites/hobcaptain/attack-2.png",
+   "sprites/hobcaptain/attack-3.png",
+   "sprites/hobcaptain/attack-4.png",
+   "sprites/hobcaptain/attack-5.png",
+   "sprites/hobcaptain/attack-6.png"
+  ],
+  "east": "sprites/hobcaptain/east.png",
+  "south": "sprites/hobcaptain/south.png"
+ },
+ "hobgoblin": {
+  "attack": [
+   "sprites/hobgoblin/attack-0.png",
+   "sprites/hobgoblin/attack-1.png",
+   "sprites/hobgoblin/attack-2.png",
+   "sprites/hobgoblin/attack-3.png",
+   "sprites/hobgoblin/attack-4.png",
+   "sprites/hobgoblin/attack-5.png",
+   "sprites/hobgoblin/attack-6.png"
+  ],
+  "east": "sprites/hobgoblin/east.png",
+  "south": "sprites/hobgoblin/south.png"
+ },
+ "hut": {
+  "east": "sprites/hut/east.png"
+ },
+ "hut-banner": {
+  "east": "sprites/hut-banner/east.png"
+ },
+ "ironshadow": {
+  "attack": [
+   "sprites/ironshadow/attack-0.png",
+   "sprites/ironshadow/attack-1.png",
+   "sprites/ironshadow/attack-2.png",
+   "sprites/ironshadow/attack-3.png",
+   "sprites/ironshadow/attack-4.png",
+   "sprites/ironshadow/attack-5.png",
+   "sprites/ironshadow/attack-6.png"
+  ],
+  "east": "sprites/ironshadow/east.png",
+  "south": "sprites/ironshadow/south.png"
+ },
+ "mephit": {
+  "attack": [
+   "sprites/mephit/attack-0.png",
+   "sprites/mephit/attack-1.png",
+   "sprites/mephit/attack-2.png",
+   "sprites/mephit/attack-3.png",
+   "sprites/mephit/attack-4.png",
+   "sprites/mephit/attack-5.png",
+   "sprites/mephit/attack-6.png"
+  ],
+  "east": "sprites/mephit/east.png",
+  "south": "sprites/mephit/south.png"
+ },
+ "nilbog": {
+  "attack": [
+   "sprites/nilbog/attack-0.png",
+   "sprites/nilbog/attack-1.png",
+   "sprites/nilbog/attack-2.png",
+   "sprites/nilbog/attack-3.png",
+   "sprites/nilbog/attack-4.png",
+   "sprites/nilbog/attack-5.png",
+   "sprites/nilbog/attack-6.png"
+  ],
+  "east": "sprites/nilbog/east.png",
+  "south": "sprites/nilbog/south.png"
+ },
+ "nurtured": {
+  "attack": [
+   "sprites/nurtured/attack-0.png",
+   "sprites/nurtured/attack-1.png",
+   "sprites/nurtured/attack-2.png",
+   "sprites/nurtured/attack-3.png",
+   "sprites/nurtured/attack-4.png",
+   "sprites/nurtured/attack-5.png",
+   "sprites/nurtured/attack-6.png"
+  ],
+  "east": "sprites/nurtured/east.png",
+  "south": "sprites/nurtured/south.png"
+ },
+ "ogre": {
+  "attack": [
+   "sprites/ogre/attack-0.png",
+   "sprites/ogre/attack-1.png",
+   "sprites/ogre/attack-2.png",
+   "sprites/ogre/attack-3.png",
+   "sprites/ogre/attack-4.png",
+   "sprites/ogre/attack-5.png",
+   "sprites/ogre/attack-6.png"
+  ],
+  "east": "sprites/ogre/east.png",
+  "south": "sprites/ogre/south.png"
+ },
+ "oni": {
+  "attack": [
+   "sprites/oni/attack-0.png",
+   "sprites/oni/attack-1.png",
+   "sprites/oni/attack-2.png",
+   "sprites/oni/attack-3.png",
+   "sprites/oni/attack-4.png",
+   "sprites/oni/attack-5.png"
+  ],
+  "east": "sprites/oni/east.png",
+  "south": "sprites/oni/south.png"
+ },
+ "orc": {
+  "attack": [
+   "sprites/orc/attack-0.png",
+   "sprites/orc/attack-1.png",
+   "sprites/orc/attack-2.png",
+   "sprites/orc/attack-3.png",
+   "sprites/orc/attack-4.png",
+   "sprites/orc/attack-5.png",
+   "sprites/orc/attack-6.png"
+  ],
+  "east": "sprites/orc/east.png",
+  "south": "sprites/orc/south.png"
+ },
+ "orog": {
+  "attack": [
+   "sprites/orog/attack-0.png",
+   "sprites/orog/attack-1.png",
+   "sprites/orog/attack-2.png",
+   "sprites/orog/attack-3.png",
+   "sprites/orog/attack-4.png",
+   "sprites/orog/attack-5.png",
+   "sprites/orog/attack-6.png"
+  ],
+  "east": "sprites/orog/east.png",
+  "south": "sprites/orog/south.png"
+ },
+ "palisade": {
+  "east": "sprites/palisade/east.png"
+ },
+ "redfang": {
+  "attack": [
+   "sprites/redfang/attack-0.png",
+   "sprites/redfang/attack-1.png",
+   "sprites/redfang/attack-2.png",
+   "sprites/redfang/attack-3.png",
+   "sprites/redfang/attack-4.png",
+   "sprites/redfang/attack-5.png",
+   "sprites/redfang/attack-6.png"
+  ],
+  "east": "sprites/redfang/east.png",
+  "south": "sprites/redfang/south.png"
+ },
+ "tanarukk": {
+  "attack": [
+   "sprites/tanarukk/attack-0.png",
+   "sprites/tanarukk/attack-1.png",
+   "sprites/tanarukk/attack-2.png",
+   "sprites/tanarukk/attack-3.png",
+   "sprites/tanarukk/attack-4.png",
+   "sprites/tanarukk/attack-5.png",
+   "sprites/tanarukk/attack-6.png"
+  ],
+  "east": "sprites/tanarukk/east.png",
+  "south": "sprites/tanarukk/south.png"
+ },
+ "tower": {
+  "east": "sprites/tower/east.png"
+ },
+ "troll": {
+  "attack": [
+   "sprites/troll/attack-0.png",
+   "sprites/troll/attack-1.png",
+   "sprites/troll/attack-2.png",
+   "sprites/troll/attack-3.png",
+   "sprites/troll/attack-4.png",
+   "sprites/troll/attack-5.png",
+   "sprites/troll/attack-6.png"
+  ],
+  "east": "sprites/troll/east.png",
+  "south": "sprites/troll/south.png"
+ },
+ "unit-0-0": {
+  "east": "sprites/unit-0-0/east.png",
+  "south": "sprites/unit-0-0/south.png"
+ },
+ "unit-0-1": {
+  "east": "sprites/unit-0-1/east.png",
+  "south": "sprites/unit-0-1/south.png"
+ },
+ "unit-0-2": {
+  "east": "sprites/unit-0-2/east.png",
+  "south": "sprites/unit-0-2/south.png"
+ },
+ "unit-1-0": {
+  "east": "sprites/unit-1-0/east.png",
+  "south": "sprites/unit-1-0/south.png"
+ },
+ "unit-1-1": {
+  "east": "sprites/unit-1-1/east.png",
+  "south": "sprites/unit-1-1/south.png"
+ },
+ "unit-1-2": {
+  "east": "sprites/unit-1-2/east.png",
+  "south": "sprites/unit-1-2/south.png"
+ },
+ "unit-2-0": {
+  "east": "sprites/unit-2-0/east.png",
+  "south": "sprites/unit-2-0/south.png"
+ },
+ "unit-2-1": {
+  "east": "sprites/unit-2-1/east.png",
+  "south": "sprites/unit-2-1/south.png"
+ },
+ "unit-2-2": {
+  "east": "sprites/unit-2-2/east.png",
+  "south": "sprites/unit-2-2/south.png"
+ },
+ "unit-3-0": {
+  "east": "sprites/unit-3-0/east.png"
+ },
+ "unit-3-1": {
+  "east": "sprites/unit-3-1/east.png"
+ },
+ "unit-3-2": {
+  "east": "sprites/unit-3-2/east.png"
+ },
+ "unit-4-0": {
+  "east": "sprites/unit-4-0/east.png",
+  "south": "sprites/unit-4-0/south.png"
+ },
+ "unit-4-1": {
+  "east": "sprites/unit-4-1/east.png",
+  "south": "sprites/unit-4-1/south.png"
+ },
+ "unit-4-2": {
+  "east": "sprites/unit-4-2/east.png",
+  "south": "sprites/unit-4-2/south.png"
+ },
+ "unit-5-0": {
+  "east": "sprites/unit-5-0/east.png",
+  "south": "sprites/unit-5-0/south.png"
+ },
+ "unit-5-1": {
+  "east": "sprites/unit-5-1/east.png",
+  "south": "sprites/unit-5-1/south.png"
+ },
+ "unit-5-2": {
+  "east": "sprites/unit-5-2/east.png",
+  "south": "sprites/unit-5-2/south.png"
+ },
+ "unit-6-0": {
+  "east": "sprites/unit-6-0/east.png"
+ },
+ "unit-6-1": {
+  "east": "sprites/unit-6-1/east.png"
+ },
+ "unit-6-2": {
+  "east": "sprites/unit-6-2/east.png"
+ },
+ "unit-7-0": {
+  "east": "sprites/unit-7-0/east.png",
+  "south": "sprites/unit-7-0/south.png"
+ },
+ "unit-7-1": {
+  "east": "sprites/unit-7-1/east.png",
+  "south": "sprites/unit-7-1/south.png"
+ },
+ "unit-7-2": {
+  "east": "sprites/unit-7-2/east.png",
+  "south": "sprites/unit-7-2/south.png"
+ },
+ "unit-8-0": {
+  "east": "sprites/unit-8-0/east.png"
+ },
+ "unit-8-1": {
+  "east": "sprites/unit-8-1/east.png"
+ },
+ "unit-8-2": {
+  "east": "sprites/unit-8-2/east.png"
+ },
+ "unit-9-0": {
+  "east": "sprites/unit-9-0/east.png"
+ },
+ "unit-9-1": {
+  "east": "sprites/unit-9-1/east.png"
+ },
+ "unit-9-2": {
+  "east": "sprites/unit-9-2/east.png"
+ },
+ "unit-10-0": {
+  "east": "sprites/unit-10-0/east.png"
+ },
+ "unit-10-1": {
+  "east": "sprites/unit-10-1/east.png"
+ },
+ "unit-10-2": {
+  "east": "sprites/unit-10-2/east.png"
+ },
+ "unit-11-0": {
+  "east": "sprites/unit-11-0/east.png"
+ },
+ "unit-11-1": {
+  "east": "sprites/unit-11-1/east.png"
+ },
+ "unit-11-2": {
+  "east": "sprites/unit-11-2/east.png"
+ },
+ "warchief": {
+  "attack": [
+   "sprites/warchief/attack-0.png",
+   "sprites/warchief/attack-1.png",
+   "sprites/warchief/attack-2.png",
+   "sprites/warchief/attack-3.png",
+   "sprites/warchief/attack-4.png",
+   "sprites/warchief/attack-5.png",
+   "sprites/warchief/attack-6.png"
+  ],
+  "east": "sprites/warchief/east.png",
+  "south": "sprites/warchief/south.png"
+ },
+ "warlord": {
+  "attack": [
+   "sprites/warlord/attack-0.png",
+   "sprites/warlord/attack-1.png",
+   "sprites/warlord/attack-2.png",
+   "sprites/warlord/attack-3.png",
+   "sprites/warlord/attack-4.png",
+   "sprites/warlord/attack-5.png",
+   "sprites/warlord/attack-6.png"
+  ],
+  "east": "sprites/warlord/east.png",
+  "south": "sprites/warlord/south.png"
+ },
+ "whale": {
+  "attack": [
+   "sprites/whale/attack-0.png",
+   "sprites/whale/attack-1.png",
+   "sprites/whale/attack-2.png",
+   "sprites/whale/attack-3.png",
+   "sprites/whale/attack-4.png",
+   "sprites/whale/attack-5.png",
+   "sprites/whale/attack-6.png"
+  ],
+  "south": "sprites/whale/south.png",
+  "west": "sprites/whale/west.png"
+ },
+ "yeti": {
+  "attack": [
+   "sprites/yeti/attack-0.png",
+   "sprites/yeti/attack-1.png",
+   "sprites/yeti/attack-2.png",
+   "sprites/yeti/attack-3.png",
+   "sprites/yeti/attack-4.png",
+   "sprites/yeti/attack-5.png",
+   "sprites/yeti/attack-6.png"
+  ],
+  "east": "sprites/yeti/east.png",
+  "south": "sprites/yeti/south.png"
+ }
 }

@@ -1,0 +1,172 @@
+{
+ "app": "PixelLab VFX Creator",
+ "name": "Goblin Haven - boom",
+ "fps": 14,
+ "frame_ms": 71,
+ "frames": 12,
+ "loop": false,
+ "canvas": {
+  "w": 51,
+  "h": 65
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 25,
+  "y": 52
+ },
+ "clips": [
+  {
+   "name": "whole",
+   "title": "the whole effect, no sprite",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 11,
+   "frame": {
+    "w": 45,
+    "h": 44
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 11,
+     "columns": 4,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -22,
+    "y": -34
+   }
+  },
+  {
+   "name": "whole-with-sprite",
+   "title": "the whole effect with the sprite in it",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 12,
+   "frame": {
+    "w": 45,
+    "h": 59
+   },
+   "sheets": [
+    {
+     "file": "whole-with-sprite.png",
+     "first_frame": 0,
+     "frames": 12,
+     "columns": 4,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -22,
+    "y": -49
+   }
+  },
+  {
+   "name": "behind",
+   "title": "everything behind the sprite",
+   "depth": "behind",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 11,
+   "frame": {
+    "w": 45,
+    "h": 44
+   },
+   "sheets": [
+    {
+     "file": "behind.png",
+     "first_frame": 0,
+     "frames": 11,
+     "columns": 4,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -22,
+    "y": -34
+   }
+  },
+  {
+   "name": "front",
+   "title": "everything in front of the sprite",
+   "depth": "front",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 3,
+   "frame": {
+    "w": 17,
+    "h": 18
+   },
+   "sheets": [
+    {
+     "file": "front.png",
+     "first_frame": 0,
+     "frames": 3,
+     "columns": 2,
+     "rows": 2
+    }
+   ],
+   "offset": {
+    "x": -9,
+    "y": -22
+   }
+  },
+  {
+   "name": "part-fire_blast",
+   "title": "the fire blast part",
+   "part": "fire_blast",
+   "depth": "behind",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 11,
+   "frame": {
+    "w": 45,
+    "h": 44
+   },
+   "sheets": [
+    {
+     "file": "part-fire_blast.png",
+     "first_frame": 0,
+     "frames": 11,
+     "columns": 4,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -22,
+    "y": -34
+   }
+  },
+  {
+   "name": "part-flash_burst",
+   "title": "the flash burst part",
+   "role": "impact",
+   "part": "flash_burst",
+   "depth": "front",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 3,
+   "frame": {
+    "w": 17,
+    "h": 18
+   },
+   "sheets": [
+    {
+     "file": "part-flash_burst.png",
+     "first_frame": 0,
+     "frames": 3,
+     "columns": 2,
+     "rows": 2
+    }
+   ],
+   "offset": {
+    "x": -9,
+    "y": -22
+   }
+  }
+ ]
+}

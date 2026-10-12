@@ -1,0 +1,170 @@
+{
+ "app": "PixelLab VFX Creator",
+ "name": "Goblin Haven - evolve",
+ "fps": 14,
+ "frame_ms": 71,
+ "frames": 14,
+ "loop": false,
+ "canvas": {
+  "w": 70,
+  "h": 96
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 35,
+  "y": 84
+ },
+ "clips": [
+  {
+   "name": "whole",
+   "title": "the whole effect, no sprite",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 13,
+   "frame": {
+    "w": 64,
+    "h": 90
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 13,
+     "columns": 4,
+     "rows": 4
+    }
+   ],
+   "offset": {
+    "x": -32,
+    "y": -81
+   }
+  },
+  {
+   "name": "whole-with-sprite",
+   "title": "the whole effect with the sprite in it",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 14,
+   "frame": {
+    "w": 64,
+    "h": 90
+   },
+   "sheets": [
+    {
+     "file": "whole-with-sprite.png",
+     "first_frame": 0,
+     "frames": 14,
+     "columns": 4,
+     "rows": 4
+    }
+   ],
+   "offset": {
+    "x": -32,
+    "y": -81
+   }
+  },
+  {
+   "name": "behind",
+   "title": "everything behind the sprite",
+   "depth": "behind",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 13,
+   "frame": {
+    "w": 64,
+    "h": 87
+   },
+   "sheets": [
+    {
+     "file": "behind.png",
+     "first_frame": 0,
+     "frames": 13,
+     "columns": 4,
+     "rows": 4
+    }
+   ],
+   "offset": {
+    "x": -32,
+    "y": -81
+   }
+  },
+  {
+   "name": "front",
+   "title": "everything in front of the sprite",
+   "depth": "front",
+   "loop": false,
+   "start_frame": 1,
+   "frames": 12,
+   "frame": {
+    "w": 44,
+    "h": 70
+   },
+   "sheets": [
+    {
+     "file": "front.png",
+     "first_frame": 0,
+     "frames": 12,
+     "columns": 4,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -22,
+    "y": -61
+   }
+  },
+  {
+   "name": "part-sky_beam",
+   "title": "the sky beam part",
+   "part": "sky_beam",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 13,
+   "frame": {
+    "w": 50,
+    "h": 87
+   },
+   "sheets": [
+    {
+     "file": "part-sky_beam.png",
+     "first_frame": 0,
+     "frames": 13,
+     "columns": 4,
+     "rows": 4
+    }
+   ],
+   "offset": {
+    "x": -25,
+    "y": -81
+   }
+  },
+  {
+   "name": "part-rest",
+   "title": "the layers in no part",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 1,
+   "frames": 12,
+   "frame": {
+    "w": 64,
+    "h": 70
+   },
+   "sheets": [
+    {
+     "file": "part-rest.png",
+     "first_frame": 0,
+     "frames": 12,
+     "columns": 4,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -32,
+    "y": -61
+   }
+  }
+ ]
+}
