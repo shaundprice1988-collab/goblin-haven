@@ -6,7 +6,7 @@ An incremental (idle) phone game, built as an installable web app (PWA). Shaun's
 
 - Live: https://shaundprice1988-collab.github.io/goblin-haven/ (GitHub Pages, repo `shaundprice1988-collab/goblin-haven`, deploys on every push to `main`)
 - Also live: https://goblin-haven.vercel.app (Vercel project `goblin-haven`, id `prj_6LDrZ56kIFtJtarcweuh3JbzGFAM`). Saves are per site, so players move between the two with save export/import
-- Last Vercel deploy: wave 3 (service worker `goblinhaven-v6`), 11 Oct 2026, prod deployment `dpl_27R2DT6N7rwZjmj9BeFWBv1uUZMk`. GitHub Pages runs `goblinhaven-v8`
+- Last Vercel deploy: wave 3 (service worker `goblinhaven-v6`), 11 Oct 2026, prod deployment `dpl_27R2DT6N7rwZjmj9BeFWBv1uUZMk`. GitHub Pages runs `goblinhaven-v9`
 - History: `docs/build-log.md`. Feature research that drove waves 1–3: `docs/feature-gaps-report.md` (all 16 items are built)
 - This folder was handed over from a Claude chat session that built waves 1–3. Commits use the GitHub noreply email (set in this repo's git config).
 
@@ -63,7 +63,7 @@ There are three layouts, all in `style.css`. The battle scene adapts to whicheve
 
 - The save lives in localStorage as `goblinhaven.save.v1`, with a rolling backup `goblinhaven.backup.v1`.
 - Any new state field must be filled in for old saves: `fixMeta` (meta.js), `fixTown` (town.js), or the load path in app.js. Never rename or repurpose an existing field.
-- Every deploy: bump `VERSION` in `sw.js` (next is `goblinhaven-v9`), and add any new file to **both** `FILES` in sw.js and the copy list in build.mjs. Otherwise installed players get stale or missing files. The `sprites/` folder is the exception: build.mjs copies it whole, and sw.js caches sprite files at runtime instead of pre-caching them, so the VERSION bump is what refreshes them.
+- Every deploy: bump `VERSION` in `sw.js` (next is `goblinhaven-v10`), and add any new file to **both** `FILES` in sw.js and the copy list in build.mjs. Otherwise installed players get stale or missing files. The `sprites/` folder is the exception: build.mjs copies it whole, and sw.js caches sprite files at runtime instead of pre-caching them, so the VERSION bump is what refreshes them.
 
 ## Deploy
 
@@ -103,6 +103,11 @@ The art is a mix: PixelLab sprites and backgrounds (PNG files in `sprites/`) whe
   - `sprites/<id>/east.png | west.png | south.png` are character facings. The hero and warband use `east`, enemies use `west`, and portraits use `south`.
   - `sprites/<id>/<anim>-<n>.png` are animation frames, e.g. `goblin/attack-0.png` gives `"attack": [...]`. The hero plays `attack` after each swing and loops `idle` otherwise. Frames share one crop so they don't jitter.
   - `sprites/bg/<region>.png` (or `shard.png`) plus `sprites/bg/horizons.json` (`{"3": 180}`) make up a background. `horizon` is the image row where the walkable ground starts; it is placed on the scene horizon, and edge bands are mirrored to fill taller or wider scenes. A sprite background replaces the procedural sky, hills, props and animated props. Weather, the village and the warband still draw on top.
+  - `sprites/bg/village.json` places the village per background, so it stands on the painted ground instead of the skyline. Each entry is `{"v": units below the horizon for the back line (huts, tower), "f": units below the fighters' feet for the front limit}`. The defaults are v 6, f 6; thin-ground art like the Sky Citadel deck needs its own values. In art.js the band is `VY` (back) to `VF` (front):
+    - The tower, huts, palisade, campfire and crowd stand from the back line forward.
+    - The warband has two rows inside the band, and flyers hover 16 units above the back line.
+    - Huts cluster into a settlement at the left, 15 units apart. Phone-shaped scenes show at most 3 huts, 4 villagers, the 5 newest ground unit types and 2 flyers.
+    - Check a change with the lab approach: render every region into one canvas and look at it at full size.
   - `sprites/fx/<name>/manifest.json + whole.png` are VFX (see below).
   - Lookup rules in art.js:
     - Adventurer class variants are `adv-<class>-<n>` (warrior, mage, ranger, cleric, rogue, gm), and each adventurer picks one from `look.seed`.

@@ -2,6 +2,7 @@
 //   sprites/<id>/east.png, west.png, south.png   -> character facings
 //   sprites/<id>/<anim>-<n>.png                  -> animation frames, e.g. goblin/attack-0.png ... -> "attack": [...]
 //   sprites/bg/<region>.png + sprites/bg/horizons.json -> "bg-<region>": { "bg": ..., "horizon": n }
+//     + sprites/bg/village.json -> "village": scene units below the horizon where the village stands (its ground line)
 //   sprites/fx/<name>/manifest.json              -> "fx-<name>": { "pack": ... } (a PixelLab VFX Creator game pack)
 // Run by build.mjs; also handy on its own: node tools/manifest.mjs
 import { readdirSync, readFileSync, writeFileSync, existsSync, statSync } from 'node:fs';
@@ -14,10 +15,12 @@ export function buildManifest(dir = 'sprites') {
     if (!statSync(p).isDirectory()) continue;
     if (id === 'bg') {
       const hz = existsSync(`${p}/horizons.json`) ? JSON.parse(readFileSync(`${p}/horizons.json`, 'utf8')) : {};
+      const vil = existsSync(`${p}/village.json`) ? JSON.parse(readFileSync(`${p}/village.json`, 'utf8')) : {};
       for (const f of readdirSync(p).filter((f) => f.endsWith('.png')).sort(byNum)) {
         const r = f.replace('.png', '');
         out[`bg-${r}`] = { bg: `${p}/${f}` };
         if (hz[r] != null) out[`bg-${r}`].horizon = hz[r];
+        if (vil[r] != null) out[`bg-${r}`].village = vil[r];
       }
       continue;
     }

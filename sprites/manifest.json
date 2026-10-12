@@ -307,11 +307,19 @@
  },
  "bg-9-wide": {
   "bg": "sprites/bg/9-wide.png",
-  "horizon": 186
+  "horizon": 186,
+  "village": {
+   "v": 12,
+   "f": 6
+  }
  },
  "bg-9": {
   "bg": "sprites/bg/9.png",
-  "horizon": 183
+  "horizon": 183,
+  "village": {
+   "v": 11,
+   "f": 1
+  }
  },
  "bg-10-wide": {
   "bg": "sprites/bg/10-wide.png",

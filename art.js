@@ -1022,62 +1022,75 @@
       weatherStep(R, dt, t);
 
       // ---- village
+      // The village lives in a band of ground: VY is its back line (huts, tower), VF its front limit (the front row of
+      // the warband). On a PixelLab backdrop both come from the image (sprites/bg/village.json: "v" units below the
+      // horizon, "f" units below the fighters' feet), so huts stand on the walkable ground in front of the painted
+      // skyline instead of floating on it. On the procedural backdrop the back line sits just above the horizon.
+      const bgArt = bgSprite(view.region), lay = bgArt && bgArt.village;
+      const lv = typeof lay === 'number' ? lay : lay && lay.v, lf = lay && typeof lay === 'object' ? lay.f : null;
+      const VY = bgArt ? G + (lv != null ? lv : 6) : G - 3, VF = FY + (lf != null ? lf : 6);
       const vx = VX; // village edge
-      const huts = Math.min(6, 2 + Math.floor(Math.log2(1 + view.goblins) / 1.6));
+      // sprites are much bigger than the old procedural village, so a narrow (phone) scene shows a smaller one
+      const narrow = !WIDE && !!sprite('hut', 'east');
+      const pal = sprite('palisade', 'east'), tow = sprite('tower', 'east');
+      if (view.tower && tow) drawSprite(tow, 9, VY + 1);
+      else if (view.tower) { px(g, 4, VY - 31, 2, 30, '#6B4628'); px(g, 12, VY - 31, 2, 30, '#6B4628'); px(g, 2, VY - 35, 14, 4, '#7A5230'); px(g, 3, VY - 38, 12, 3, '#B8963A'); }
+      const huts = Math.min(narrow ? 3 : 6, 2 + Math.floor(Math.log2(1 + view.goblins) / 1.6));
+      // huts cluster into a settlement at the left, about a hut apart (closer when a narrow scene runs out of room)
+      const hutX0 = view.tower ? 16 : 2;
+      const hutStep = Math.min(15, (vx - 14 - hutX0) / Math.max(1, huts - 1));
+      const settleX1 = Math.round(hutX0 + hutStep * (huts - 1) + 14); // the settlement's right edge
       for (let k = 0; k < huts; k++) {
-        const hw2 = 9 + (k % 2) * 2, hx = 2 + Math.round(k * (vx - 16) / Math.max(1, huts - 1)), hfy = G - 3 - (k % 2) * 2;
+        const hw2 = 9 + (k % 2) * 2, hx = hutX0 + Math.round(k * hutStep), hfy = VY - (k % 2) * 2;
         // conquered regions fly a banner over a hut
         const hs2 = sprite(k < view.conquered ? 'hut-banner' : 'hut', 'east') || sprite('hut', 'east');
-        if (hs2) drawSprite(hs2, hx + hw2 / 2, hfy + 2);
+        if (hs2) drawSprite(hs2, hx + hw2 / 2, hfy + 1);
         else hut(g, hx, hfy, hw2, k % 2 ? '#B8963A' : '#C9A64A', t, k < view.conquered);
       }
-      // campfire
-      const fx2 = Math.round(vx * 0.55);
-      if (!loopFx('campfire', fx2, G + 3, t, { base: true })) {
-        px(g, fx2 - 2, G + 2, 5, 1, '#3A2A1A');
-        px(g, fx2 - 1, G - 1 + (Math.sin(t * 9) > 0 ? 0 : 1), 3, 3, '#FF8A3D');
-        px(g, fx2, G - 2 + (Math.sin(t * 11) > 0 ? 0 : 1), 1, 2, '#FFE08A');
+      if (view.palisade && pal) drawSprite(pal, vx - 1, Math.min(VY + 4, VF));
+      else if (view.palisade) { for (let k = 0; k < 5; k++) { px(g, vx - 2, VY - 7 + k * 2, 2, 2, k % 2 ? '#7A5230' : '#6B4628'); } px(g, vx - 2, VY - 8, 1, 1, '#8B6A40'); }
+      // campfire in front of the huts
+      const fx2 = Math.round((hutX0 + settleX1) / 2);
+      if (!loopFx('campfire', fx2, Math.min(VY + 6, VF), t, { base: true })) {
+        px(g, fx2 - 2, VY + 5, 5, 1, '#3A2A1A');
+        px(g, fx2 - 1, VY + 2 + (Math.sin(t * 9) > 0 ? 0 : 1), 3, 3, '#FF8A3D');
+        px(g, fx2, VY + 1 + (Math.sin(t * 11) > 0 ? 0 : 1), 1, 2, '#FFE08A');
       }
-      const pal = sprite('palisade', 'east'), tow = sprite('tower', 'east');
-      if (view.palisade && pal) drawSprite(pal, vx - 1, G + 1);
-      else if (view.palisade) { for (let k = 0; k < 5; k++) { px(g, vx - 2, G - 10 + k * 2, 2, 2, k % 2 ? '#7A5230' : '#6B4628'); } px(g, vx - 2, G - 11, 1, 1, '#8B6A40'); }
-      if (view.tower && tow) drawSprite(tow, 9, G - 2);
-      else if (view.tower) { px(g, 4, G - 34, 2, 30, '#6B4628'); px(g, 12, G - 34, 2, 30, '#6B4628'); px(g, 2, G - 38, 14, 4, '#7A5230'); px(g, 3, G - 41, 12, 3, '#B8963A'); }
+      // a crowd of plain goblins grows with the village, milling about in front of the huts
+      const crowd = Math.min(narrow ? 4 : 10, Math.floor(Math.log2(1 + view.goblins) * 1.2));
+      for (let k = 0; k < crowd; k++) {
+        const x = Math.round(5 + ((k * 37) % Math.max(10, settleX1 - 4))), bob = Math.sin(t * 2.5 + k * 1.7) > 0.7 ? 1 : 0, cy = Math.min(VY + 4 + (k % 2) * 2, VF);
+        const cs = sprite('crowd-' + (k % 2), 'east') || sprite('crowd-0', 'east');
+        if (cs) drawSprite(cs, x, cy - bob);
+        else humanoid(g, x, cy, goblinLook({ h: 7, skin: k % 3 ? '#7FA650' : '#8DB85A', shirt: k % 2 ? '#5A4632' : '#4A3B28' }), { bob });
+      }
 
-      // units, newest types near the front
+      // units, newest types near the front: two rows on the ground, flyers hovering over the huts
       const owned = view.owned;
       const slots = [];
       for (let i = 0; i < owned.length; i++) if (owned[i] > 0) slots.push(i);
-      // sprites are much bigger than the old procedural units, so a narrow (phone) scene shows only the newest few types
-      const big = !WIDE && (unitSprite(0, 0) || unitSprite(1, 0));
+      const big = narrow && (unitSprite(0, 0) || unitSprite(1, 0));
       const ground = slots.filter((i) => i !== 8 && i !== 9 && i !== 10).slice(big ? -5 : 0);
       const air = slots.filter((i) => i === 8 || i === 9 || i === 10).slice(big ? -2 : 0);
       const ranks = view.ranks || [];
+      const row0 = Math.round(VY + (VF - VY) * 0.45), row1 = VF - 1, flyY = VY - 16;
+      air.forEach((i, k) => {
+        const x = Math.round(hutX0 + 6 + k * 16 + Math.sin(t * 0.5 + k) * 3), fy = flyY - (k % 2) * 6 + Math.round(Math.sin(t * 1.6 + k) * 1.5);
+        const ph = ((t * 0.5 + i * 0.37) % 1);
+        const top = unitAt(i, x, fy, t, ph, ranks[i]);
+        if (rankFx[i] > 0) rankBurst(i, x, top, fy, rankFx[i]);
+        if (st.enemy && !st.enemy.dead && ph > 0.8 && ph - dt * 0.5 <= 0.8 && !reduce) shoot(i, x, fy - 4, ranks[i]);
+      });
       ground.forEach((i, k) => {
         const row = k % 2;
         const x = Math.round(6 + (k * (vx - 6)) / Math.max(1, ground.length) + 4);
         const ph = ((t * (0.6 + i * 0.07) + i * 0.37) % 1);
-        const fy = G + 5 + row * Math.round((H - G) * 0.42);
+        const fy = row ? row1 : row0;
         const top = unitAt(i, x, fy, t, ph, ranks[i]);
         if (rankFx[i] > 0) rankBurst(i, x, top, fy, rankFx[i]);
-        if (st.enemy && !st.enemy.dead && ph > 0.8 && ph - dt * (0.6 + i * 0.07) <= 0.8 && !reduce) shoot(i, x, G - 2, ranks[i]);
-      });
-      air.forEach((i, k) => {
-        const x = Math.round(10 + k * 14 + Math.sin(t * 0.5 + k) * 3);
-        const ph = ((t * 0.5 + i * 0.37) % 1);
-        const top = unitAt(i, x, G + 4, t, ph, ranks[i]);
-        if (rankFx[i] > 0) rankBurst(i, x, top, top + 6, rankFx[i]);
-        if (st.enemy && !st.enemy.dead && ph > 0.8 && ph - dt * 0.5 <= 0.8 && !reduce) shoot(i, x, G - 26, ranks[i]);
+        if (st.enemy && !st.enemy.dead && ph > 0.8 && ph - dt * (0.6 + i * 0.07) <= 0.8 && !reduce) shoot(i, x, fy - 8, ranks[i]);
       });
       for (const k in rankFx) rankFx[k] = Math.max(0, rankFx[k] - dt);
-      // a crowd of plain goblins grows with the village
-      const crowd = Math.min(big ? 4 : 10, Math.floor(Math.log2(1 + view.goblins) * 1.2));
-      for (let k = 0; k < crowd; k++) {
-        const x = Math.round(5 + ((k * 37) % Math.max(10, vx - 10))), bob = Math.sin(t * 2.5 + k * 1.7) > 0.7 ? 1 : 0;
-        const cs = sprite('crowd-' + (k % 2), 'east') || sprite('crowd-0', 'east');
-        if (cs) drawSprite(cs, x, G + 1 - bob);
-        else humanoid(g, x, G + 1, goblinLook({ h: 7, skin: k % 3 ? '#7FA650' : '#8DB85A', shirt: k % 2 ? '#5A4632' : '#4A3B28' }), { bob });
-      }
 
       drawFxs(dt, 'behind');
 
