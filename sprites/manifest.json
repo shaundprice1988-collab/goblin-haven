@@ -345,6 +345,22 @@
   "bg": "sprites/bg/shard.png",
   "horizon": 196
  },
+ "bg-town-autumn": {
+  "bg": "sprites/bg/town-autumn.png",
+  "horizon": 91
+ },
+ "bg-town-spring": {
+  "bg": "sprites/bg/town-spring.png",
+  "horizon": 92
+ },
+ "bg-town-summer": {
+  "bg": "sprites/bg/town-summer.png",
+  "horizon": 78
+ },
+ "bg-town-winter": {
+  "bg": "sprites/bg/town-winter.png",
+  "horizon": 97
+ },
  "blade": {
   "attack": [
    "sprites/blade/attack-0.png",
@@ -626,6 +642,72 @@
   "east": "sprites/eye/east.png",
   "south": "sprites/eye/south.png"
  },
+ "folk-forager": {
+  "east": "sprites/folk-forager/east.png",
+  "walk": [
+   "sprites/folk-forager/walk-0.png",
+   "sprites/folk-forager/walk-1.png",
+   "sprites/folk-forager/walk-2.png",
+   "sprites/folk-forager/walk-3.png",
+   "sprites/folk-forager/walk-4.png",
+   "sprites/folk-forager/walk-5.png"
+  ]
+ },
+ "folk-guard": {
+  "east": "sprites/folk-guard/east.png",
+  "walk": [
+   "sprites/folk-guard/walk-0.png",
+   "sprites/folk-guard/walk-1.png",
+   "sprites/folk-guard/walk-2.png",
+   "sprites/folk-guard/walk-3.png",
+   "sprites/folk-guard/walk-4.png",
+   "sprites/folk-guard/walk-5.png"
+  ]
+ },
+ "folk-miner": {
+  "east": "sprites/folk-miner/east.png",
+  "walk": [
+   "sprites/folk-miner/walk-0.png",
+   "sprites/folk-miner/walk-1.png",
+   "sprites/folk-miner/walk-2.png",
+   "sprites/folk-miner/walk-3.png",
+   "sprites/folk-miner/walk-4.png",
+   "sprites/folk-miner/walk-5.png"
+  ]
+ },
+ "folk-stonecutter": {
+  "east": "sprites/folk-stonecutter/east.png",
+  "walk": [
+   "sprites/folk-stonecutter/walk-0.png",
+   "sprites/folk-stonecutter/walk-1.png",
+   "sprites/folk-stonecutter/walk-2.png",
+   "sprites/folk-stonecutter/walk-3.png",
+   "sprites/folk-stonecutter/walk-4.png",
+   "sprites/folk-stonecutter/walk-5.png"
+  ]
+ },
+ "folk-tinkerer": {
+  "east": "sprites/folk-tinkerer/east.png",
+  "walk": [
+   "sprites/folk-tinkerer/walk-0.png",
+   "sprites/folk-tinkerer/walk-1.png",
+   "sprites/folk-tinkerer/walk-2.png",
+   "sprites/folk-tinkerer/walk-3.png",
+   "sprites/folk-tinkerer/walk-4.png",
+   "sprites/folk-tinkerer/walk-5.png"
+  ]
+ },
+ "folk-woodcutter": {
+  "east": "sprites/folk-woodcutter/east.png",
+  "walk": [
+   "sprites/folk-woodcutter/walk-0.png",
+   "sprites/folk-woodcutter/walk-1.png",
+   "sprites/folk-woodcutter/walk-2.png",
+   "sprites/folk-woodcutter/walk-3.png",
+   "sprites/folk-woodcutter/walk-4.png",
+   "sprites/folk-woodcutter/walk-5.png"
+  ]
+ },
  "fx-boom": {
   "pack": "sprites/fx/boom/manifest.json"
  },
@@ -823,6 +905,9 @@
   "east": "sprites/ironshadow/east.png",
   "south": "sprites/ironshadow/south.png"
  },
+ "longhouse": {
+  "east": "sprites/longhouse/east.png"
+ },
  "mephit": {
   "attack": [
    "sprites/mephit/attack-0.png",
@@ -944,6 +1029,94 @@
  },
  "tower": {
   "east": "sprites/tower/east.png"
+ },
+ "town-bath": {
+  "t0": "sprites/town-bath/t0.png",
+  "t1": "sprites/town-bath/t1.png",
+  "t2": "sprites/town-bath/t2.png"
+ },
+ "town-camp": {
+  "t0": "sprites/town-camp/t0.png",
+  "t1": "sprites/town-camp/t1.png",
+  "t2": "sprites/town-camp/t2.png"
+ },
+ "town-farm": {
+  "t0": "sprites/town-farm/t0.png",
+  "t1": "sprites/town-farm/t1.png",
+  "t2": "sprites/town-farm/t2.png"
+ },
+ "town-feast": {
+  "t0": "sprites/town-feast/t0.png",
+  "t1": "sprites/town-feast/t1.png",
+  "t2": "sprites/town-feast/t2.png"
+ },
+ "town-forge": {
+  "t0": "sprites/town-forge/t0.png",
+  "t1": "sprites/town-forge/t1.png",
+  "t2": "sprites/town-forge/t2.png"
+ },
+ "town-hall": {
+  "t0": "sprites/town-hall/t0.png",
+  "t1": "sprites/town-hall/t1.png",
+  "t2": "sprites/town-hall/t2.png"
+ },
+ "town-healer": {
+  "t0": "sprites/town-healer/t0.png",
+  "t1": "sprites/town-healer/t1.png",
+  "t2": "sprites/town-healer/t2.png"
+ },
+ "town-library": {
+  "t0": "sprites/town-library/t0.png",
+  "t1": "sprites/town-library/t1.png",
+  "t2": "sprites/town-library/t2.png"
+ },
+ "town-lumber": {
+  "t0": "sprites/town-lumber/t0.png",
+  "t1": "sprites/town-lumber/t1.png",
+  "t2": "sprites/town-lumber/t2.png"
+ },
+ "town-market": {
+  "t0": "sprites/town-market/t0.png",
+  "t1": "sprites/town-market/t1.png",
+  "t2": "sprites/town-market/t2.png"
+ },
+ "town-mine": {
+  "t0": "sprites/town-mine/t0.png",
+  "t1": "sprites/town-mine/t1.png",
+  "t2": "sprites/town-mine/t2.png"
+ },
+ "town-pit": {
+  "t0": "sprites/town-pit/t0.png",
+  "t1": "sprites/town-pit/t1.png",
+  "t2": "sprites/town-pit/t2.png"
+ },
+ "town-plot": {
+  "east": "sprites/town-plot/east.png"
+ },
+ "town-quarry": {
+  "t0": "sprites/town-quarry/t0.png",
+  "t1": "sprites/town-quarry/t1.png",
+  "t2": "sprites/town-quarry/t2.png"
+ },
+ "town-shed": {
+  "t0": "sprites/town-shed/t0.png",
+  "t1": "sprites/town-shed/t1.png",
+  "t2": "sprites/town-shed/t2.png"
+ },
+ "town-shrine": {
+  "t0": "sprites/town-shrine/t0.png",
+  "t1": "sprites/town-shrine/t1.png",
+  "t2": "sprites/town-shrine/t2.png"
+ },
+ "town-vault": {
+  "t0": "sprites/town-vault/t0.png",
+  "t1": "sprites/town-vault/t1.png",
+  "t2": "sprites/town-vault/t2.png"
+ },
+ "town-walls": {
+  "t0": "sprites/town-walls/t0.png",
+  "t1": "sprites/town-walls/t1.png",
+  "t2": "sprites/town-walls/t2.png"
  },
  "troll": {
   "attack": [

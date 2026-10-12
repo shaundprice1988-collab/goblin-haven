@@ -768,6 +768,42 @@
     nilbog: 3, abominable: 3, warlord: 5, ironshadow: 5, orc: 5, orog: 5, blade: 5, ogre: 5, oni: 5, chainbrute: 6 };
   const PROJ_SPEED = { arrow: 150, coin: 110 }; // scene units per second; spells default to 95
 
+  // Draw a PixelLab backdrop into a canvas (identity transform, art pixels): its ground row hz lands on row groundY,
+  // centred. If the box is taller or wider than the image, the edge bands are mirrored outward (sky up, ground down,
+  // sides out) to fill it. Shared by the battle scene and the town.
+  function blitBackdrop(c, cv, s, hz, groundY, BW, BH) {
+    const img = s.img, w = s.w, h = s.h;
+    const dx = Math.round((BW - w) / 2), dy = groundY - hz;
+    c.clearRect(0, 0, BW, BH);
+    c.drawImage(img, dx, dy);
+    for (let y = dy, flip = true; y > 0; flip = !flip) { // sky band, mirrored upward
+      const band = Math.min(hz, y);
+      c.save(); c.translate(0, y); if (flip) c.scale(1, -1);
+      c.drawImage(img, 0, flip ? 0 : hz - band, w, band, dx, flip ? 0 : -band, w, band);
+      c.restore(); y -= band;
+    }
+    const gh = h - hz;
+    for (let y = dy + h, flip = true; y < BH && gh > 0; flip = !flip) { // ground band, mirrored downward
+      const band = Math.min(gh, BH - y);
+      c.save(); c.translate(0, y); if (flip) c.scale(1, -1);
+      c.drawImage(img, 0, flip ? h - band : hz, w, band, dx, flip ? -band : 0, w, band);
+      c.restore(); y += band;
+    }
+    // columns either side: mirror the image outward, again and again, until the box is covered
+    for (let x = dx, flip = true; x > 0; flip = !flip) {
+      const band = Math.min(w, x);
+      c.save(); c.translate(x, 0); if (flip) c.scale(-1, 1);
+      c.drawImage(cv, flip ? dx : dx + w - band, 0, band, BH, flip ? 0 : -band, 0, band, BH);
+      c.restore(); x -= band;
+    }
+    for (let x = dx + w, flip = true; x < BW; flip = !flip) {
+      const band = Math.min(w, BW - x);
+      c.save(); c.translate(x, 0); if (flip) c.scale(-1, 1);
+      c.drawImage(cv, flip ? dx + w - band : dx, 0, band, BH, flip ? -band : 0, 0, band, BH);
+      c.restore(); x += band;
+    }
+  }
+
   function createScene(canvas) {
     const ctx = canvas.getContext('2d');
     const low = document.createElement('canvas');
@@ -965,41 +1001,9 @@
       if (key === bgKey) return;
       bgKey = key;
       if (art) {
-        // The image's ground line sits on the scene's horizon, centred. If the scene is taller or wider than the
-        // image, the edge bands are mirrored outward (sky upward, ground downward, sides outward) to fill the gap.
-        const s = art.bg, img = s.img, w = s.w, h = s.h, BW = W * FX, BH = H * FX;
-        const hz = art.horizon || Math.round(h * 0.65);
-        const dx = Math.round((BW - w) / 2), dy = G * FX - hz;
-        fine(bg, () => {
-          bg.clearRect(0, 0, BW, BH);
-          bg.drawImage(img, dx, dy);
-          for (let y = dy, flip = true; y > 0; flip = !flip) { // sky band, mirrored upward
-            const band = Math.min(hz, y);
-            bg.save(); bg.translate(0, y); if (flip) bg.scale(1, -1);
-            bg.drawImage(img, 0, flip ? 0 : hz - band, w, band, dx, flip ? 0 : -band, w, band);
-            bg.restore(); y -= band;
-          }
-          const gh = h - hz;
-          for (let y = dy + h, flip = true; y < BH && gh > 0; flip = !flip) { // ground band, mirrored downward
-            const band = Math.min(gh, BH - y);
-            bg.save(); bg.translate(0, y); if (flip) bg.scale(1, -1);
-            bg.drawImage(img, 0, flip ? h - band : hz, w, band, dx, flip ? -band : 0, w, band);
-            bg.restore(); y += band;
-          }
-          // columns either side: mirror the image outward, again and again, until the band is covered
-          for (let x = dx, flip = true; x > 0; flip = !flip) {
-            const band = Math.min(w, x);
-            bg.save(); bg.translate(x, 0); if (flip) bg.scale(-1, 1);
-            bg.drawImage(bgC, flip ? dx : dx + w - band, 0, band, BH, flip ? 0 : -band, 0, band, BH);
-            bg.restore(); x -= band;
-          }
-          for (let x = dx + w, flip = true; x < BW; flip = !flip) {
-            const band = Math.min(w, BW - x);
-            bg.save(); bg.translate(x, 0); if (flip) bg.scale(-1, 1);
-            bg.drawImage(bgC, flip ? dx + w - band : dx, 0, band, BH, flip ? -band : 0, 0, band, BH);
-            bg.restore(); x += band;
-          }
-        });
+        // the image's ground line sits on the scene's horizon (see blitBackdrop)
+        const hz = art.horizon || Math.round(art.bg.h * 0.65);
+        fine(bg, () => blitBackdrop(bg, bgC, art.bg, hz, G * FX, W * FX, H * FX));
         return;
       }
       const sky = bg.createLinearGradient(0, 0, 0, G);
@@ -1641,24 +1645,38 @@
     let folk = [];
     let bubble = null;
     const R = { sky: ['#30485A', '#7A9AA0'], hills: '#3A5232', ground: '#4E3E2A' };
+    // The canvases are in art pixels, TS CSS px each, about 128 art px tall. PixelLab sprites draw 1:1 in art pixels;
+    // the procedural drawings work in units of TF art pixels (about 43 units tall) through a transform, so they keep
+    // their old look. Layout (G, FB, FF, folk x/y) stays in units; SCALE is CSS px per unit.
+    const TF = 3;
+    let TS = 1;
+    const idt = (c, fn) => { c.save(); c.setTransform(1, 0, 0, 1, 0, 0); fn(); c.restore(); };
 
     function resize() {
       const r = canvas.getBoundingClientRect();
       CW = Math.max(1, r.width); CH = Math.max(1, r.height);
       DPR = Math.min(3, window.devicePixelRatio || 1);
       canvas.width = Math.round(CW * DPR); canvas.height = Math.round(CH * DPR);
-      SCALE = Math.max(2, Math.round(CW / 130));
+      TS = Math.max(1, Math.round(CH / 128));
+      SCALE = TS * TF;
       W = Math.ceil(CW / SCALE); H = Math.ceil(CH / SCALE);
-      low.width = W; low.height = H; bgC.width = W; bgC.height = H;
+      for (const c of [low, bgC]) { c.width = W * TF; c.height = H * TF; }
+      for (const c of [g, bg]) { c.setTransform(TF, 0, 0, TF, 0, 0); c.imageSmoothingEnabled = false; }
       G = Math.round(H * 0.36);
       FB = G + 5;
       FF = H - 4;
       bgKey = '';
     }
-    function paint() {
-      const key = `${W},${H}`;
+    // The season's PixelLab backdrop (bg-town-<season>), if any. Its "horizon" in horizons.json is the row of the
+    // painted road, which lands on the road the villagers walk.
+    const townBg = (season) => { const e = entryOf('bg-town-' + season); return e && e.bg ? e : null; };
+    const roadRow = () => Math.round((FB + FF) / 2) + 1;
+    function paint(season) {
+      const art = townBg(season);
+      const key = `${W},${H},${season},${art ? 1 : 0}`;
       if (key === bgKey) return;
       bgKey = key;
+      if (art) { idt(bg, () => blitBackdrop(bg, bgC, art.bg, art.horizon || Math.round(art.bg.h * 0.7), roadRow() * TF, W * TF, H * TF)); return; }
       const sky = bg.createLinearGradient(0, 0, 0, G);
       sky.addColorStop(0, R.sky[0]); sky.addColorStop(1, R.sky[1]);
       bg.fillStyle = sky; bg.fillRect(0, 0, W, H);
@@ -1689,28 +1707,69 @@
       folk.forEach((p, i) => { p.job = jobs.length ? jobs[Math.floor((i * jobs.length) / want)] : null; });
     }
 
+    // ---- PixelLab sprites in the town. Each helper draws the sprite and returns true, returns true without drawing
+    // while that art is still downloading (so the old drawing never flashes), and returns false when there is no art.
+    function drawS(sp, x, fy, flip) { // 1:1 in art pixels, centred on x (units) with its feet on fy (units)
+      const X = Math.round(x * TF), dx = Math.round(X - (sp.ax != null ? sp.ax : sp.w / 2)), dy = Math.round(fy * TF) - (sp.ay != null ? sp.ay : sp.h);
+      idt(g, () => { if (flip) { g.translate(2 * X, 0); g.scale(-1, 1); } g.drawImage(sp.img, sp.x, sp.y, sp.w, sp.h, dx, dy, sp.w, sp.h); });
+    }
+    // buildings come in three tiers: levels 1-3, 4-7 and 8+ (town-<id>/t0, t1, t2)
+    function tierSprite(id, L) { for (let k = L >= 8 ? 2 : L >= 4 ? 1 : 0; k >= 0; k--) { const sp = sprite('town-' + id, 't' + k); if (sp) return sp; } return null; }
+    function bldSpr(id, x, fy, L) { const sp = tierSprite(id, L); if (sp) { drawS(sp, x, fy); return true; } return artPending('town-' + id); }
+    function plotSpr(x, fy) { const sp = sprite('town-plot', 'east'); if (sp) { drawS(sp, x, fy); return true; } return artPending('town-plot'); }
+    function hutsSpr(x0, x1, fy, L, longhouses) {
+      const hs = (longhouses && sprite('longhouse', 'east')) || sprite('hut', 'east');
+      if (!hs) return artPending('hut') || (longhouses && artPending('longhouse'));
+      const w = hs.w / TF, n = Math.max(1, Math.min(7, 1 + Math.floor((L - 1) / 2), Math.floor((x1 - x0) / (w * 0.55))));
+      for (let k = 0; k < n; k++) drawS(hs, n === 1 ? (x0 + x1) / 2 : x0 + w / 2 + (k * (x1 - x0 - w)) / (n - 1), fy - (k % 2 ? 1 : 0));
+      return true;
+    }
+    function wallsSpr(L) {
+      const sp = tierSprite('walls', L);
+      if (!sp) return artPending('town-walls');
+      drawS(sp, sp.w / TF / 2, FF + 1); drawS(sp, W - sp.w / TF / 2, FF + 1, true);
+      return true;
+    }
+    function fireSpr(x, fy, t) { // the campfire VFX loop, standing on fy
+      const d = VFX.campfire;
+      if (!d) return false;
+      const c = d.clips.whole, per = (c.start + c.frames) / d.fps, n = Math.floor((reduce ? 0 : t % per) * d.fps) - c.start;
+      if (n < 0) return true;
+      const k = n % c.frames;
+      idt(g, () => g.drawImage(c.img, (k % c.cols) * c.fw, Math.floor(k / c.cols) * c.fh, c.fw, c.fh, Math.round(x * TF - c.fw / 2), Math.round(fy * TF) - c.fh, c.fw, c.fh));
+      return true;
+    }
+    // Until a frame has all its sprites (or 3 s), show the night colour instead of the old drawings.
+    let gateOpen = false, gateT0 = 0;
+
     function frame(dt, now, view) {
       if (W < 40 || H < 20) return;
       const t = now / 1000;
-      paint();
+      wanted = 0;
+      if (!gateT0) gateT0 = performance.now();
+      paint(view.season);
       g.clearRect(0, 0, W, H);
-      g.drawImage(bgC, 0, 0);
-      if (view.season === 'summer') { px(g, W - 14, 3, 5, 5, '#FFE08A'); px(g, W - 13, 2, 3, 7, '#FFE08A'); px(g, W - 15, 4, 7, 3, '#FFE08A'); }
-      if (view.season === 'winter') { px(g, 0, G - 1, W, 1, 'rgba(255,255,255,0.55)'); for (let x = 1; x < W; x += 5) px(g, x, G, 2, 1, 'rgba(255,255,255,0.4)'); }
+      idt(g, () => g.drawImage(bgC, 0, 0));
+      const artBg = !!townBg(view.season);
+      if (!artBg && view.season === 'summer') { px(g, W - 14, 3, 5, 5, '#FFE08A'); px(g, W - 13, 2, 3, 7, '#FFE08A'); px(g, W - 15, 4, 7, 3, '#FFE08A'); }
+      if (!artBg && view.season === 'winter') { px(g, 0, G - 1, W, 1, 'rgba(255,255,255,0.55)'); for (let x = 1; x < W; x += 5) px(g, x, G, 2, 1, 'rgba(255,255,255,0.4)'); }
       const lv = view.bld;
       const lh = !!view.tech.longhouses;
       // back row
       for (const [id, fx] of TOWN_SPOTS.back) {
         const x = Math.round(W * fx);
-        if (lv[id]) BUILD_ART[id](g, x, FB, lv[id], t, { hills: R.hills, feast: view.feast });
-        else if (view.open[id]) stakes(g, x, FB);
+        if (lv[id]) { if (!bldSpr(id, x, FB, lv[id])) BUILD_ART[id](g, x, FB, lv[id], t, { hills: R.hills, feast: view.feast }); }
+        else if (view.open[id] && !plotSpr(x, FB)) stakes(g, x, FB);
       }
-      hutsArt(g, Math.round(W * 0.21), Math.round(W * (lv.hall ? 0.41 : 0.5)), FB, lv.huts || 1, t, lh);
+      const hx0 = Math.round(W * 0.21), hx1 = Math.round(W * (lv.hall ? 0.41 : 0.5));
+      if (!hutsSpr(hx0, hx1, FB, lv.huts || 1, lh)) hutsArt(g, hx0, hx1, FB, lv.huts || 1, t, lh);
       // the old campfire, in the middle of the road
       const fx2 = Math.round(W * 0.53), fy2 = Math.round((FB + FF) / 2) + 1;
-      px(g, fx2 - 2, fy2, 5, 1, '#3A2A1A');
-      px(g, fx2 - 1, fy2 - 3 + (Math.sin(t * 9) > 0 ? 0 : 1), 3, 3, '#FF8A3D');
-      px(g, fx2, fy2 - 4 + (Math.sin(t * 11) > 0 ? 0 : 1), 1, 2, '#FFE08A');
+      if (!fireSpr(fx2, fy2 + 1, t)) {
+        px(g, fx2 - 2, fy2, 5, 1, '#3A2A1A');
+        px(g, fx2 - 1, fy2 - 3 + (Math.sin(t * 9) > 0 ? 0 : 1), 3, 3, '#FF8A3D');
+        px(g, fx2, fy2 - 4 + (Math.sin(t * 11) > 0 ? 0 : 1), 1, 2, '#FFE08A');
+      }
       // villagers walk the road
       syncFolk(view);
       const roadY = Math.round((FB + FF) / 2) + 1;
@@ -1728,6 +1787,11 @@
         }
         const walking = p.wait <= 0;
         const hop = happy && !walking && Math.sin(t * 6 + p.k) > 0.8 ? 1 : 0;
+        // a worker is its job's villager sprite (walk cycle while moving, mirrored when heading left); idlers are crowd goblins
+        const fe = p.job ? entryOf('folk-' + p.job) : null;
+        const fs = fe && fe.east ? (walking && !reduce && fe.walk ? fe.walk[Math.floor(t * 8 + p.k) % fe.walk.length] : fe.east) : (!p.job ? sprite('crowd-' + (p.k % 2), 'east') : null);
+        if (fs) { drawS(fs, p.x, p.y - hop, p.f < 0); continue; }
+        if (p.job ? artPending('folk-' + p.job) : artPending('crowd-' + (p.k % 2))) continue;
         const L = { h: 7, skin: p.k % 3 ? '#7FA650' : '#8DB85A', ears: 2, bigHead: true, facing: p.f, shirt: p.k % 2 ? '#5A4632' : '#4A3B28' };
         if (p.job === 'guard') { L.weapon = 'spear'; L.hat = 'helm'; L.helm = '#8A8E96'; }
         humanoid(g, Math.round(p.x), Math.round(p.y) + 0, L, { walk: walking && !reduce ? t * 2 + p.k : 0, bob: hop });
@@ -1736,10 +1800,10 @@
       // front row
       for (const [id, fx] of TOWN_SPOTS.front) {
         const x = Math.round(W * fx);
-        if (lv[id]) BUILD_ART[id](g, x, FF, lv[id], t, { hills: R.hills });
-        else if (view.open[id]) stakes(g, x, FF);
+        if (lv[id]) { if (!bldSpr(id, x, FF, lv[id])) BUILD_ART[id](g, x, FF, lv[id], t, { hills: R.hills }); }
+        else if (view.open[id] && !plotSpr(x, FF)) stakes(g, x, FF);
       }
-      if (lv.walls) wallsArt(g, W, FB, FF, lv.walls);
+      if (lv.walls && !wallsSpr(lv.walls)) wallsArt(g, W, FB, FF, lv.walls);
       if (view.mood === 'Miserable' && !reduce) { // a sulky little rain cloud
         const cx = Math.round(W * 0.35 + Math.sin(t * 0.3) * 8);
         px(g, cx, 3, 7, 2, '#5A5E66'); px(g, cx + 1, 2, 4, 1, '#5A5E66');
@@ -1761,7 +1825,9 @@
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.imageSmoothingEnabled = false;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(low, 0, 0, W, H, 0, 0, W * SCALE * DPR, H * SCALE * DPR);
+      if (!gateOpen && (wanted === 0 || performance.now() - gateT0 > 3000)) gateOpen = true;
+      if (!gateOpen) { ctx.fillStyle = '#16130F'; ctx.fillRect(0, 0, canvas.width, canvas.height); return; }
+      ctx.drawImage(low, 0, 0, low.width, low.height, 0, 0, low.width * TS * DPR, low.height * TS * DPR);
 
       // speech bubble
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
