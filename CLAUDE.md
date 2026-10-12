@@ -6,7 +6,7 @@ An incremental (idle) phone game, built as an installable web app (PWA). Shaun's
 
 - Live: https://shaundprice1988-collab.github.io/goblin-haven/ (GitHub Pages, repo `shaundprice1988-collab/goblin-haven`, deploys on every push to `main`)
 - Also live: https://goblin-haven.vercel.app (Vercel project `goblin-haven`, id `prj_6LDrZ56kIFtJtarcweuh3JbzGFAM`). Saves are per site, so players move between the two with save export/import
-- Last Vercel deploy: wave 3 (service worker `goblinhaven-v6`), 11 Oct 2026, prod deployment `dpl_27R2DT6N7rwZjmj9BeFWBv1uUZMk`. GitHub Pages runs `goblinhaven-v10`
+- Last Vercel deploy: wave 3 (service worker `goblinhaven-v6`), 11 Oct 2026, prod deployment `dpl_27R2DT6N7rwZjmj9BeFWBv1uUZMk`. GitHub Pages runs `goblinhaven-v11`
 - History: `docs/build-log.md`. Feature research that drove waves 1–3: `docs/feature-gaps-report.md` (all 16 items are built)
 - This folder was handed over from a Claude chat session that built waves 1–3. Commits use the GitHub noreply email (set in this repo's git config).
 
@@ -63,7 +63,7 @@ There are three layouts, all in `style.css`. The battle scene adapts to whicheve
 
 - The save lives in localStorage as `goblinhaven.save.v1`, with a rolling backup `goblinhaven.backup.v1`.
 - Any new state field must be filled in for old saves: `fixMeta` (meta.js), `fixTown` (town.js), or the load path in app.js. Never rename or repurpose an existing field.
-- Every deploy: bump `VERSION` in `sw.js` (next is `goblinhaven-v11`), and add any new file to **both** `FILES` in sw.js and the copy list in build.mjs. Otherwise installed players get stale or missing files. The `sprites/` folder is the exception: build.mjs copies it whole, and sw.js caches sprite files at runtime instead of pre-caching them, so the VERSION bump is what refreshes them.
+- Every deploy: bump `VERSION` in `sw.js` (next is `goblinhaven-v12`), and add any new file to **both** `FILES` in sw.js and the copy list in build.mjs. Otherwise installed players get stale or missing files. The `sprites/` folder is the exception: build.mjs copies it whole, and sw.js caches sprite files at runtime instead of pre-caching them, so the VERSION bump is what refreshes them.
 
 ## Deploy
 

@@ -677,7 +677,7 @@
         if (m[id].pack) { loadFx(id.replace(/^fx-/, ''), m[id].pack); continue; } // VFX are small: load them all now
         const entry = SPRITES[id] = {};
         for (const key in m[id]) if (typeof m[id][key] !== 'string' && !Array.isArray(m[id][key])) entry[key] = m[id][key]; // horizon, village
-        const v = /^adv-([a-z]+)-d+$/.exec(id);
+        const v = /^adv-([a-z]+)-\d+$/.exec(id);
         if (v) (VARIANTS[v[1]] = VARIANTS[v[1]] || []).push(id);
       }
       MANIFEST = m;
@@ -725,6 +725,8 @@
     return sprite(id, 'west') ? id : null;
   }
   const lookSprite = (L, named) => { const id = lookSpriteId(L, named); return id ? sprite(id, 'west') : null; };
+  // Is this look's class sprite still downloading? (Then draw nothing for a moment rather than the old procedural art.)
+  const lookPending = (L) => { const list = VARIANTS[L.cls]; return !MANIFEST ? !manifestFailed : !!(list && list.length && artPending(list[(L.seed >>> 0) % list.length])); };
   // Warband unit i at rank r: three gear tiers (recruits, veterans from rank 2, elites from rank 4), facing east.
   // A missing tier falls back to the one below it.
   function unitSprite(i, r) {
@@ -1172,19 +1174,19 @@
         // walking adventurers hop a unit every other step; idle ones breathe; a swing leans them at the hero
         const step = (k) => (ePos.walking ? (Math.sin((t * 3 + k) * TAU) > 0 ? 1 : 0) : (Math.sin(t * 3 + k) > 0.6 ? 1 : 0));
         if (e.raid) {
-          const sprs = e.looks.map((L) => lookSprite(L));
-          if (sprs.every(Boolean)) {
-            let tallest = 0;
-            [0, 2, 1].forEach((k) => { // the middle member stands in front
-              const L = e.looks[k], s = sprs[k], x = ePos.x + (k - 1) * 12, fy = FY + (k === 1 ? 1 : -1) - (e.dead ? 0 : step(k));
+          // each member on its own: its class sprite, nothing while that sprite downloads, else the procedural figure
+          let tallest = 0;
+          [0, 2, 1].forEach((k) => { // the middle member stands in front
+            const L = e.looks[k], s = lookSprite(L), x = ePos.x + (k - 1) * 12, fy = FY + (k === 1 ? 1 : -1) - (e.dead ? 0 : step(k));
+            if (s) {
               tallest = Math.max(tallest, drawSprite(s, x, fy, { flash: e.flash > 0 }).h);
               if (EVENT_HATS.has(L.hat)) spriteHat(s, x, fy, L.hat);
-            });
-            e.drawH = tallest + 2;
-          } else {
-            outlined((c) => e.looks.forEach((L, k) => humanoid(c, ePos.x + (k - 1) * 9, FY + (k === 1 ? -2 : 1), L, { walk: ePos.walking ? t * 3 + k : 0, flash: e.flash > 0, bob: e.dead ? 0 : (Math.sin(t * 3 + k) > 0.6 ? 1 : 0) })));
-            e.drawH = 0;
-          }
+            } else if (!lookPending(L)) {
+              outlined((c) => humanoid(c, x, fy, L, { walk: ePos.walking ? t * 3 + k : 0, flash: e.flash > 0, bob: e.dead ? 0 : (Math.sin(t * 3 + k) > 0.6 ? 1 : 0) }));
+              tallest = Math.max(tallest, L.h);
+            }
+          });
+          e.drawH = tallest ? tallest + 2 : 0;
         } else if (!e.dead || e.deadT < 0.15) {
           const eid = lookSpriteId(e.look, [e.look.sprite, e.boss ? 'boss-' + slug(e.name) : null, e.whale ? 'whale' : null]);
           let es = eid ? sprite(eid, 'west') : null;
@@ -1206,6 +1208,8 @@
             const x = ePos.x - lunge, fy = FY - (e.atk != null ? 0 : step(0));
             e.drawH = drawSprite(es, x, fy, { flash: e.flash > 0, glow: e.outline || (e.boss ? 'rgba(242,193,78,0.9)' : null) }).h;
             if (EVENT_HATS.has(e.look.hat)) spriteHat(es, x, fy, e.look.hat);
+          } else if (lookPending(e.look) || (e.boss && artPending('boss-' + slug(e.name)))) {
+            e.drawH = 0; // its sprite is still downloading: draw nothing for a moment rather than the old procedural art
           } else {
             outlined((c) => humanoid(c, ePos.x, FY, e.look, { walk: ePos.walking ? t * 3 : 0, flash: e.flash > 0, swing: e.swing || 0, bob: Math.sin(t * 3) > 0.6 ? 1 : 0 }), e.outline || (e.boss ? 'rgba(242,193,78,0.9)' : null));
             e.drawH = 0;
